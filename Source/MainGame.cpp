@@ -6,7 +6,14 @@
 // PsyGameInit
 void PsyGameInit()
 {
-
+	GPsySetupParams = PsySetupParams( 
+		"Tentacle Potato Defense",
+#if PSY_PRODUCTION
+		psySF_GAME_FINAL,
+#else
+		psySF_GAME_DEV,
+#endif
+		1.0f / 60.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
