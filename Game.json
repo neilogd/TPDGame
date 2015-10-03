@@ -1,7 +1,7 @@
 {
 	"name" : "TPDGame",
-	"fullname" : "TPDGame Full Name",
-	"desc" : "Description for your game.",
+	"fullname" : "Tentacle Potato Defense",
+	"desc" : "A tower defense game full of tentacles, and potatoes.",
 
 	"android" : {
 		"package" : "com.Psybrus.TPDGame",
