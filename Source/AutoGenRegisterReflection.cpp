@@ -74,6 +74,7 @@
 #include "System/Sound/SsCore.h"
 #include "System/SysKernel.h"
 #include "System/SysSystem.h"
+#include "GaHotspotComponent.h"
 void AutoGenRegisterReflection()
 {
 	MaAABB::StaticRegisterClass();
@@ -178,4 +179,6 @@ void AutoGenRegisterReflection()
 	SsCore::StaticRegisterClass();
 	SysKernel::StaticRegisterClass();
 	SysSystem::StaticRegisterClass();
+	GaHotspotProcessor::StaticRegisterClass();
+	GaHotspotComponent::StaticRegisterClass();
 }

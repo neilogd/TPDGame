@@ -5,6 +5,14 @@
 			"type"		:		"ScnEntity",
 
 			"components" : [
+				{
+					"type" : "ScnViewComponent",
+					"enableclearcolour" : true,
+					"enablecleardepth" : true,
+					"enableclearstencil" : true,
+					"clearcolour" : "0.0, 0.0, 0.0, 0.0",
+					"rendermask" : 1
+				}
 			]
 		}
 	]
