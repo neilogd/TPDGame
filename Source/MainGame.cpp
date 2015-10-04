@@ -26,4 +26,11 @@ void PsyLaunchGame()
 		ScnEntitySpawnParams( 
 			"MainEntity_0", "default", "MainEntity",
 			MaMat4d(), nullptr ) );
+
+	ScnCore::pImpl()->spawnEntity( 
+		ScnEntitySpawnParams( 
+			"TentacleEntity_0", "default", "TentacleEntity",
+			MaMat4d(), nullptr ) );
+
+
 }

@@ -1,0 +1,212 @@
+{
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"Importer-Debug.exe"
+			],
+			"name": "Import packages (windows)",
+			"working_dir": "$project_path/Dist"
+		},
+		{
+			"cmd":
+			[
+				"./Importer-Debug"
+			],
+			"name": "Import packages (*nix)",
+			"working_dir": "$project_path/Dist"
+		},
+		{
+			"cmd":
+			[
+				"Psybrus/Tools/genie/linux/genie",
+				"--platform=x64",
+				"--toolchain=linux-clang",
+				"--boostpath=/opt/boost_1_57_0",
+				"gmake"
+			],
+			"file_regex": "(../../[^:\n]*):([0-9]+):?([0-9]+)?",
+			"name": "gmake-linux-clang",
+			"variants":
+			[
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=debug"
+					],
+					"name": "Build Debug",
+					"working_dir": "$project_path/Projects/gmake-linux-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=release"
+					],
+					"name": "Build Release",
+					"working_dir": "$project_path/Projects/gmake-linux-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=production"
+					],
+					"name": "Build Production",
+					"working_dir": "$project_path/Projects/gmake-linux-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"clean"
+					],
+					"name": "Clean",
+					"working_dir": "$project_path/Projects/gmake-linux-clang"
+				}
+			],
+			"working_dir": "$project_path"
+		},
+		{
+			"cmd":
+			[
+				"Psybrus/Tools/genie/darwin/genie",
+				"--platform=x64",
+				"--toolchain=osx-clang",
+				"--boostpath=/Users/Neilo/Dev/boost_1_57_0",
+				"gmake"
+			],
+			"file_regex": "(../../[^:\n]*):([0-9]+):?([0-9]+)?",
+			"name": "gmake-osx-clang",
+			"variants":
+			[
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=debug"
+					],
+					"name": "Build Debug",
+					"working_dir": "$project_path/Projects/gmake-osx-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=release"
+					],
+					"name": "Build Release",
+					"working_dir": "$project_path/Projects/gmake-osx-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=production"
+					],
+					"name": "Build Production",
+					"working_dir": "$project_path/Projects/gmake-osx-clang"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"clean"
+					],
+					"name": "Clean",
+					"working_dir": "$project_path/Projects/gmake-osx-clang"
+				}
+			],
+			"working_dir": "$project_path"
+		},
+		{
+			"cmd":
+			[
+				"Psybrus/Tools/genie/linux/genie",
+				"--toolchain=asmjs",
+				"gmake"
+			],
+			"env":
+			{
+				"EMSCRIPTEN": "/opt/emscripten/emscripten"
+			},
+			"file_regex": "(../../[^:\n]*):([0-9]+):?([0-9]+)?",
+			"name": "gmake-asmjs",
+			"variants":
+			[
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=debug"
+					],
+					"name": "Build Debug",
+					"working_dir": "$project_path/Projects/gmake-asmjs"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=release"
+					],
+					"name": "Build Release",
+					"working_dir": "$project_path/Projects/gmake-asmjs"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"-j5",
+						"config=production"
+					],
+					"name": "Build Production",
+					"working_dir": "$project_path/Projects/gmake-asmjs"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"clean"
+					],
+					"name": "Clean",
+					"working_dir": "$project_path/Projects/gmake-asmjs"
+				}
+			],
+			"working_dir": "$project_path"
+		}
+	],
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"*.d",
+				"*.a",
+				"*.o"
+			],
+			"name": "Root",
+			"path": "."
+		},
+		{
+			"path": "C:\\Dev\\genie"
+		},
+		{
+			"path": "C:\\Dev\\Android\\android-ndk-r10e\\platforms\\android-18\\arch-arm"
+		}
+	],
+	"settings":
+	{
+		"tab_size": 4,
+		"translate_tabs_to_spaces": false
+	}
+}

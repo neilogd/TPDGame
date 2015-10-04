@@ -72,7 +72,33 @@ void GaHotspotProcessor::initialise()
 
 			return evtRET_PASS;
 		} );
-}
+
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< OsEventInputMouse >();
+
+			for( auto* Hotspot : HotspotComponents_ )
+			{
+				auto* ParentEntity = Hotspot->getParentEntity();
+				const MaVec3d Position = Hotspot->getPosition();
+				const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
+				const MaVec2d CornerA = Position.xy() - Hotspot->Size_;	
+				const MaVec2d CornerB = Position.xy() + Hotspot->Size_;				
+				if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
+					MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
+				{
+					GaHotspotEvent OutEvent;
+					OutEvent.ID_ = Hotspot->ID_;
+					OutEvent.Position_ = MousePosition;
+					OutEvent.RelativePosition_ = MousePosition - Position.xy();
+					ParentEntity->publish( gaEVT_HOTSPOT_HOVER, OutEvent );
+					return evtRET_PASS;
+				}
+			}
+
+			return evtRET_PASS;
+		} );}
 
 //////////////////////////////////////////////////////////////////////////
 // shutdown

@@ -41,15 +41,17 @@ struct GaPhysicsConstraint
 		Length_( 0.0f )
 	{}
 
-	GaPhysicsConstraint( size_t IdxA, size_t IdxB, BcF32 Length ):
+	GaPhysicsConstraint( size_t IdxA, size_t IdxB, BcF32 Length, BcF32 Rigidity ):
 		IdxA_( IdxA ),
 		IdxB_( IdxB ),
-		Length_( Length )
+		Length_( Length ),
+		Rigidity_( Rigidity )
 	{}
 
 	size_t IdxA_;
 	size_t IdxB_;
 	BcF32 Length_;
+	BcF32 Rigidity_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,6 +72,7 @@ public:
 	void debugDraw( const ScnComponentList& Components );
 
 private:
+	BcF32 TickAccumulator_ = 0.0f;
 	
 };
 
@@ -84,13 +87,16 @@ public:
 	GaPhysicsComponent();
 	virtual ~GaPhysicsComponent();
 
-	void setPointMasses( std::vector< GaPhysicsPointMass >&& PointMasses );
-	void setConstraints( std::vector< GaPhysicsConstraint >&& Constraints );
+	void setup( std::vector< GaPhysicsPointMass >&& PointMasses, std::vector< GaPhysicsConstraint >&& Constraints );
+
+	const MaVec2d& getPointMassPosition( size_t Idx ) const { return PointMasses_[ Idx ].CurrPosition_; }
+	void setPointMassPosition( size_t Idx, const MaVec2d& Position ) { PointMasses_[ Idx ].CurrPosition_ = Position; }
 
 private:
 	friend class GaPhysicsProcessor;
 
 	std::vector< GaPhysicsPointMass > PointMasses_;
 	std::vector< GaPhysicsConstraint > Constraints_;
-	
+
+	size_t ConstraintIterations_;
 };

@@ -8,6 +8,7 @@
 enum GaHotspotEvents
 {
 	gaEVT_HOTSPOT_PRESSED,
+	gaEVT_HOTSPOT_HOVER,
 };
 
 struct GaHotspotEvent : EvtEvent< GaHotspotEvent >

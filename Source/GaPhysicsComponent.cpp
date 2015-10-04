@@ -60,43 +60,48 @@ void GaPhysicsProcessor::shutdown()
 // setupHotspots
 void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 {
-	const BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	const BcF32 Tick = 1.0f / 240.0f;
 	const BcF32 TickSquared = Tick * Tick;
 
-	for( auto InComponent : Components )
+	TickAccumulator_ += SysKernel::pImpl()->getFrameTime();
+	while( TickAccumulator_ > Tick )
 	{
-		BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
-		auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
-
-		// Update point masses.
-		for(auto& PointMass : Component->PointMasses_)
+		TickAccumulator_ -= Tick;
+		for( auto InComponent : Components )
 		{
-			BcAssert( PointMass.DampingFactor_ >= 0.0f && PointMass.DampingFactor_ <= 1.0f );
-			BcAssert( PointMass.InvMass_ >= 0.0f );
+			BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
+			auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
 
-			const MaVec2d Velocity = PointMass.CurrPosition_ - PointMass.PrevPosition_;
-			PointMass.PrevPosition_= PointMass.CurrPosition_;
-			PointMass.CurrPosition_ += Velocity * ( 1.0f - PointMass.DampingFactor_ ) + PointMass.Acceleration_ * TickSquared;
-		}
 
-		// Update constraints.
-		for(auto& Constraint : Component->Constraints_)
-		{
-			BcAssert( Constraint.IdxA_ < Component->PointMasses_.size() );
-			BcAssert( Constraint.IdxB_ < Component->PointMasses_.size() );
-			auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
-			auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
 
-			const MaVec2d Delta = PointMassA.CurrPosition_ - PointMassB.PrevPosition_;
-			const BcF32 Length = Delta.magnitude();
-			const MaVec2d Offset = Delta * ( Length - Constraint.Length_ );
-			const BcF32 TotalInvMass = PointMassA.InvMass_ + PointMassB.InvMass_;
-			if( TotalInvMass > 0.0f )
+			// Update point masses.
+			for( auto& PointMass : Component->PointMasses_ )
 			{
-				const BcF32 InfluenceA = PointMassA.InvMass_ / TotalInvMass;
-				const BcF32 InfluenceB = PointMassB.InvMass_ / TotalInvMass;
-				PointMassA.CurrPosition_ += Offset * InfluenceA;
-				PointMassB.CurrPosition_ += Offset * InfluenceB;
+				BcAssert( PointMass.InvMass_ >= 0.0f );
+				const MaVec2d Velocity = PointMass.CurrPosition_ - PointMass.PrevPosition_;
+				PointMass.PrevPosition_= PointMass.CurrPosition_;
+				PointMass.CurrPosition_ += Velocity * ( 1.0f - PointMass.DampingFactor_ ) + PointMass.Acceleration_ * TickSquared;
+			}
+
+			// Update constraints.
+			for( size_t Idx = 0; Idx < Component->ConstraintIterations_; ++Idx )
+			{
+				for( auto& Constraint : Component->Constraints_ )
+				{
+					auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
+					auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
+					const MaVec2d Delta = PointMassB.CurrPosition_ - PointMassA.CurrPosition_;
+					const BcF32 Length = Delta.magnitude();
+					const MaVec2d Offset = Delta.normal() * ( Length - Constraint.Length_ );
+					const BcF32 TotalInvMass = PointMassA.InvMass_ + PointMassB.InvMass_;
+					if( TotalInvMass > 0.0f )
+					{
+						const BcF32 InfluenceA = PointMassA.InvMass_ / TotalInvMass;
+						const BcF32 InfluenceB = PointMassB.InvMass_ / TotalInvMass;
+						PointMassA.CurrPosition_ += Offset * InfluenceA * Constraint.Rigidity_;
+						PointMassB.CurrPosition_ -= Offset * InfluenceB * Constraint.Rigidity_;
+					}
+				}
 			}
 		}
 	}
@@ -121,16 +126,19 @@ void GaPhysicsProcessor::debugDraw( const ScnComponentList& Components )
 			// Draw point masses.
 			for(auto& PointMass : Component->PointMasses_)
 			{
-				BcAssert( PointMass.DampingFactor_ >= 0.0f && PointMass.DampingFactor_ <= 1.0f );
-				BcAssert( PointMass.InvMass_ >= 0.0f );
-				DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xffffffff );
+				if( PointMass.InvMass_ > 0.0f )
+				{
+					DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff00ff00 );
+				}
+				else
+				{
+					DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff0000ff );
+				}
 			}
 
 			// Draw constraints.
 			for(auto& Constraint : Component->Constraints_)
 			{
-				BcAssert( Constraint.IdxA_ < Component->PointMasses_.size() );
-				BcAssert( Constraint.IdxB_ < Component->PointMasses_.size() );
 				auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
 				auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
 				DrawList->AddLine( PointMassA.CurrPosition_, PointMassB.CurrPosition_, 0xffffffff, 2.0f );
@@ -148,16 +156,12 @@ REFLECTION_DEFINE_DERIVED( GaPhysicsComponent );
 
 void GaPhysicsComponent::StaticRegisterClass()
 {
-#if 0
 	ReField* Fields[] = 
 	{
-		new ReField( "ID_", &GaPhysicsComponent::ID_, bcRFF_IMPORTER ),
-		new ReField( "Position_", &GaPhysicsComponent::Position_, bcRFF_IMPORTER ),
-		new ReField( "Size_", &GaPhysicsComponent::Size_, bcRFF_IMPORTER ),
+		new ReField( "ConstraintIterations_", &GaPhysicsComponent::ConstraintIterations_, bcRFF_IMPORTER ),
 	};
-#endif
 
-	ReRegisterClass< GaPhysicsComponent, Super >()
+	ReRegisterClass< GaPhysicsComponent, Super >( Fields )
 		.addAttribute( new GaPhysicsProcessor() );
 }
 
@@ -176,15 +180,25 @@ GaPhysicsComponent::~GaPhysicsComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPointMasses
-void GaPhysicsComponent::setPointMasses( std::vector< GaPhysicsPointMass >&& PointMasses )
+// setup
+void GaPhysicsComponent::setup( std::vector< GaPhysicsPointMass >&& PointMasses, std::vector< GaPhysicsConstraint >&& Constraints )
 {
 	PointMasses_ = std::move( PointMasses );
-}
+	for(auto& PointMass : PointMasses_ )
+	{
+		BcAssert( PointMass.DampingFactor_ >= 0.0f && PointMass.DampingFactor_ <= 1.0f );
+		BcAssert( PointMass.InvMass_ >= 0.0f );
+	}
 
-//////////////////////////////////////////////////////////////////////////
-// setConstraints
-void GaPhysicsComponent::setConstraints( std::vector< GaPhysicsConstraint >&& Constraints )
-{
 	Constraints_ = std::move( Constraints );
+	for(auto& Constraint : Constraints_)
+	{
+		BcAssert( Constraint.IdxA_ < PointMasses_.size() );
+		BcAssert( Constraint.IdxB_ < PointMasses_.size() );
+		BcAssert( Constraint.Rigidity_ >= 0.0f && Constraint.Rigidity_ <= 1.0f );
+		if( Constraint.Length_ < 0.0f )
+		{
+			Constraint.Length_ = ( PointMasses_[ Constraint.IdxA_ ].CurrPosition_ - PointMasses_[ Constraint.IdxB_ ].CurrPosition_ ).magnitude() * -( Constraint.Length_ );
+		}
+	}
 }
