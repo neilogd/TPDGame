@@ -139,9 +139,10 @@ void GaPhysicsProcessor::debugDraw( const ScnComponentList& Components )
 			// Draw constraints.
 			for(auto& Constraint : Component->Constraints_)
 			{
+				RsColour Colour( 1.0f, 1.0f, 1.0f, Constraint.Rigidity_ );
 				auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
 				auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
-				DrawList->AddLine( PointMassA.CurrPosition_, PointMassB.CurrPosition_, 0xffffffff, 2.0f );
+				DrawList->AddLine( PointMassA.CurrPosition_, PointMassB.CurrPosition_, Colour.asABGR(), 2.0f );
 			}
 		}
 

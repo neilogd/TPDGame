@@ -151,6 +151,7 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, -1.0f, 0.5f ) );
 	size_t PointOffset = 1;
+	BcF32 LargeConstraintSize = 0.5f;
 	MaVec2d Offset( 0.0f, SectionHeight );
 	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
 	{
@@ -161,9 +162,18 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 		// Link to next section.
 		if( Idx < ( NoofSections - 1 ) )
 		{
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, -1.0f, 0.5f ) );
+			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, -1.0f, 1.0f ) );
 			PointOffset += 1;
 		}
+
+		// Link to start.
+#if 0
+		if( Idx >= 2 && (Idx % 4 )== 0 )
+		{
+			Constraints.emplace_back( GaPhysicsConstraint( 0, Idx, -1.0f, LargeConstraintSize ) );
+			LargeConstraintSize *= 0.9f;
+		}
+#endif
 	}
 
 	for( auto& PointMass : PointMasses )
