@@ -168,7 +168,7 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 
 		// Link to start.
 #if 0
-		if( Idx >= 2 && (Idx % 4 )== 0 )
+		if( Idx >= 2 && (Idx % 4) == 0 )
 		{
 			Constraints.emplace_back( GaPhysicsConstraint( 0, Idx, -1.0f, LargeConstraintSize ) );
 			LargeConstraintSize *= 0.9f;
@@ -194,7 +194,7 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 // onAttach
 void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	setupSimpleTopology( MaVec2d( 300.0f, 0.0f ), 32.0f, 32.0f, 32 );
+	setupComplexTopology( MaVec2d( 300.0f, 0.0f ), 32.0f, 32.0f, 32 );
 
 	// Setup callback for clicking.
 	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,

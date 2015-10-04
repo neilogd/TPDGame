@@ -46,6 +46,36 @@ GaPhysicsProcessor::~GaPhysicsProcessor()
 // initialise
 void GaPhysicsProcessor::initialise()
 {
+#if !PSY_PRODUCTION
+	DsCore::pImpl()->registerPanel(
+		"Physics Settings", [ this ]( BcU32 )->void
+		{
+			static bool ShowOpened = true;
+			if ( ImGui::Begin( "Physics Settings", &ShowOpened ) )
+			{
+				BcF32 InvTick = 1.0f / TickRate_;
+				if( ImGui::InputFloat( "Tick rate (hz)", &InvTick ) )
+				{
+					if( InvTick > 0.0f && InvTick < 480.0f )
+					{
+						TickRate_ = 1.0f / InvTick;
+					}
+				}
+
+				int Iterations = static_cast< int >( Iterations_ );
+				if( ImGui::InputInt( "Iterations", &Iterations ) )
+				{
+					if( Iterations >= 1 && Iterations <= 32 )
+					{
+						Iterations_ = static_cast< BcU32 >( Iterations );
+					}
+				}
+
+				ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
+			}
+			ImGui::End();
+		} );
+#endif // !PSY_PRODUCTION
 
 }
 
@@ -57,10 +87,12 @@ void GaPhysicsProcessor::shutdown()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setupHotspots
+// updateSimulations
 void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 {
-	const BcF32 Tick = 1.0f / 240.0f;
+	BcTimer Timer;
+	Timer.mark();
+	const BcF32 Tick = TickRate_;
 	const BcF32 TickSquared = Tick * Tick;
 
 	TickAccumulator_ += SysKernel::pImpl()->getFrameTime();
@@ -72,8 +104,6 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 			BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
 			auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
 
-
-
 			// Update point masses.
 			for( auto& PointMass : Component->PointMasses_ )
 			{
@@ -84,7 +114,7 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 			}
 
 			// Update constraints.
-			for( size_t Idx = 0; Idx < Component->ConstraintIterations_; ++Idx )
+			for( size_t Idx = 0; Idx < Iterations_; ++Idx )
 			{
 				for( auto& Constraint : Component->Constraints_ )
 				{
@@ -105,6 +135,8 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 			}
 		}
 	}
+
+	TimeTaken_ = Timer.time();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -157,12 +189,14 @@ REFLECTION_DEFINE_DERIVED( GaPhysicsComponent );
 
 void GaPhysicsComponent::StaticRegisterClass()
 {
+	/*
 	ReField* Fields[] = 
 	{
 		new ReField( "ConstraintIterations_", &GaPhysicsComponent::ConstraintIterations_, bcRFF_IMPORTER ),
 	};
+	*/
 
-	ReRegisterClass< GaPhysicsComponent, Super >( Fields )
+	ReRegisterClass< GaPhysicsComponent, Super >()
 		.addAttribute( new GaPhysicsProcessor() );
 }
 

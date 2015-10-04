@@ -73,6 +73,10 @@ public:
 
 private:
 	BcF32 TickAccumulator_ = 0.0f;
+
+	BcF32 TickRate_ = 1.0f / 240.0f;
+	BcU32 Iterations_ = 8;
+	BcF32 TimeTaken_ = 0.0f;
 	
 };
 
@@ -97,6 +101,4 @@ private:
 
 	std::vector< GaPhysicsPointMass > PointMasses_;
 	std::vector< GaPhysicsConstraint > Constraints_;
-
-	size_t ConstraintIterations_;
 };
