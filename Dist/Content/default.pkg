@@ -28,8 +28,7 @@
 				},
 
 				{
-					"type" : "GaPhysicsComponent",
-					"constraintiterations" : 8
+					"type" : "GaPhysicsComponent"
 				},
 
 				{
