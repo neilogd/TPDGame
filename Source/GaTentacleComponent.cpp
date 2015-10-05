@@ -253,7 +253,7 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 // onAttach
 void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	setupComplexTopology( MaVec2d( 300.0f, 0.0f ), 32.0f, 32.0f, 20 );
+	setupComplexTopology( Parent->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
 
 	// Setup callback for clicking.
 	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,

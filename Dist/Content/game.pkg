@@ -1,0 +1,30 @@
+{
+	"resources" : [
+		{
+			"name"		:		"GameEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaGameComponent",
+					"level" : 0
+				}
+			]
+		},
+
+		{
+			"name"		:		"TentacleEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaTentacleComponent"
+				}
+			]
+		}
+	]
+}

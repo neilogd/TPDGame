@@ -30,27 +30,6 @@
 					"material" : "$(ScnMaterial:fonts.font_material)"
 				}
 			]
-		},
-
-		{
-			"name"		:		"TentacleEntity",
-			"type"		:		"ScnEntity",
-
-			"components" : [
-				{
-					"type" : "GaHotspotComponent",
-					"id" : 1000,
-					"size" : "10000.0, 10000.0"
-				},
-
-				{
-					"type" : "GaPhysicsComponent"
-				},
-
-				{
-					"type" : "GaTentacleComponent"
-				}
-			]
 		}
 	]
 }

@@ -2,8 +2,8 @@
 	"resources" : [
 		// Splash screen menu.
 		{
-			"name"		:		"SplashMenu",
-			"type"		:		"ScnEntity",
+			"name" : "SplashMenu",
+			"type" : "ScnEntity",
 
 			"components" : [
 				{
@@ -22,8 +22,8 @@
 
 		// Main menu.
 		{
-			"name"		:		"MainMenu",
-			"type"	:		"ScnEntity",
+			"name" : "MainMenu",
+			"type" : "ScnEntity",
 
 			"components" : [
 				{
@@ -32,8 +32,8 @@
 					"entries" : [ 
 						{
 							"text" : "Start Game",
-							"entitypackage" : "menus",
-							"entityname" : "MainMenu"
+							"entitypackage" : "game",
+							"entityname" : "GameEntity"
 						},
 
 						{
@@ -55,8 +55,8 @@
 
 		// Achievement menu.
 		{
-			"name"		:		"AchievementMenu",
-			"type"		:		"ScnEntity",
+			"name" : "AchievementMenu",
+			"type" : "ScnEntity",
 
 			"components" : [
 				{
@@ -75,8 +75,8 @@
 
 		// Leaderboard menu.
 		{
-			"name"		:		"LeaderboardMenu",
-			"type"		:		"ScnEntity",
+			"name" : "LeaderboardMenu",
+			"type" : "ScnEntity",
 
 			"components" : [
 				{
@@ -92,6 +92,5 @@
 				}
 			]
 		}	
-
 	]
 }

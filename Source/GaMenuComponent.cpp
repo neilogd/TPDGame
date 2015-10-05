@@ -202,7 +202,7 @@ void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 			const auto& Entry = Entries_[ Event.ID_ ];
 			ScnEntitySpawnParams SpawnParams( 
-					Entry.EntityName_, Entry.EntityPackage_, Entry.EntityName_,
+					BcName::INVALID, Entry.EntityPackage_, Entry.EntityName_,
 					MaMat4d(), getParentEntity()->getParentEntity() );
 			SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Entity )
 				{
