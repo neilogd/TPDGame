@@ -137,7 +137,7 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 // debugDraw
 void GaHotspotProcessor::debugDraw( const ScnComponentList& Components )
 {			
-	ImGui::SetNextWindowPos( MaVec2d( 0.0f, 0.0f ), ImGuiSetCond_Always );
+	ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
 	ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
 	if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
 	{
