@@ -74,8 +74,8 @@ public:
 private:
 	BcF32 TickAccumulator_ = 0.0f;
 
-	BcF32 TickRate_ = 1.0f / 240.0f;
-	BcU32 Iterations_ = 8;
+	BcF32 TickRate_ = 1.0f / 120.0f;
+	BcU32 Iterations_ = 1;
 	BcF32 TimeTaken_ = 0.0f;
 	
 };
