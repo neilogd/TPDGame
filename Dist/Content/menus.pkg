@@ -1,0 +1,97 @@
+{
+	"resources" : [
+		// Splash screen menu.
+		{
+			"name"		:		"SplashMenu",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Tentacle Potato Defense",
+					"entries" : [ 
+						{
+							"text" : "Main Menu",
+							"entitypackage" : "menus",
+							"entityname" : "MainMenu"
+						}
+					]
+				}
+			]
+		},
+
+		// Main menu.
+		{
+			"name"		:		"MainMenu",
+			"type"	:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Tentacle Potato Defense",
+					"entries" : [ 
+						{
+							"text" : "Start Game",
+							"entitypackage" : "menus",
+							"entityname" : "MainMenu"
+						},
+
+						{
+							"text" : "Achievements",
+							"entitypackage" : "menus",
+							"entityname" : "AchievementMenu"
+						},
+
+						{
+							"text" : "Leaderboard",
+							"entitypackage" : "menus",
+							"entityname" : "LeaderboardMenu"
+						}
+					]
+				}
+			]
+		},
+
+
+		// Achievement menu.
+		{
+			"name"		:		"AchievementMenu",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Achievements",
+					"entries" : [ 
+						{
+							"text" : "Back to Main Menu",
+							"entitypackage" : "menus",
+							"entityname" : "MainMenu"
+						}
+					]
+				}
+			]
+		},
+
+		// Leaderboard menu.
+		{
+			"name"		:		"LeaderboardMenu",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Leaderboards",
+					"entries" : [ 
+						{
+							"text" : "Back to Main Menu",
+							"entitypackage" : "menus",
+							"entityname" : "MainMenu"
+						}
+					]
+				}
+			]
+		}	
+
+	]
+}

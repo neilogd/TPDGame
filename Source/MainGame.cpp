@@ -20,17 +20,20 @@ void PsyGameInit()
 // PsyLaunchGame
 void PsyLaunchGame()
 {
-	// Spawn entity called "MainEntity" from Dist/Content/default.pkg,
-	// and name it "MainEntity_0", and place it in the root of the scene.
-	ScnCore::pImpl()->spawnEntity( 
-		ScnEntitySpawnParams( 
-			"MainEntity_0", "default", "MainEntity",
-			MaMat4d(), nullptr ) );
+	// Main entity params.
+	ScnEntitySpawnParams MainEntityParams( 
+		"MainEntity", "default", "MainEntity",
+		MaMat4d(), nullptr );
+	MainEntityParams.OnSpawn_ = []( ScnEntity* Entity )
+		{
+			// Once main entity has spawned, create menu.
+			ScnCore::pImpl()->spawnEntity( 
+				ScnEntitySpawnParams( 
+					"SplashMenu", "menus", "SplashMenu",
+					MaMat4d(), Entity ) );
+		};
 
-	ScnCore::pImpl()->spawnEntity( 
-		ScnEntitySpawnParams( 
-			"TentacleEntity_0", "default", "TentacleEntity",
-			MaMat4d(), nullptr ) );
-
-
+	
+	// Spawn main entity.
+	ScnCore::pImpl()->spawnEntity( MainEntityParams );
 }

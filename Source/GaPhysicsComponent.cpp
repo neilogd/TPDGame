@@ -31,7 +31,8 @@ GaPhysicsProcessor::GaPhysicsProcessor():
 				"Update simulations",
 				ScnComponentPriority::VIEW_RENDER - 1,
 				std::bind(  &GaPhysicsProcessor::debugDraw, this, std::placeholders::_1 ) )
-		} ){
+		} )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

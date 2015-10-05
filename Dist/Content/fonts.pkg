@@ -1,0 +1,109 @@
+{
+	"resources" : [
+		{
+			"type" : "ScnTexture",
+			"name" : "font_placeholder_texture",
+
+			"source" : "Content/Textures/default.png",
+
+			"@(pc)"	: {
+				"format" : "DXT1"
+			},
+
+			"@(android)" : {
+				"format" : "ETC1"
+			},
+
+			"@(html5)" : {
+				"format" : "DXT1"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "font_shader",
+			"sources"		: {
+				"GLSL_330" : "Content/Fonts/font.glsl",
+				"GLSL_ES_100" : "Content/Fonts/font.glsl"
+			},
+
+			"excludepermutations" : [
+				"RENDER_DEFERRED",
+				"RENDER_FORWARD_PLUS",
+				"PASS_SHADOW",
+				"MESH_INSTANCED_3D",
+				"LIGHTING_DIFFUSE"
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMain"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "font_material",
+
+			// Shader
+			"shader"		: "$(ScnShader:this.font_shader)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:this.font_placeholder_texture)"
+			},
+
+			// Samplers
+			"samplers"		: {
+				"aDiffuseTex"	: {
+					"addressu" : "wrap",
+					"addressv" : "wrap",
+					"minfilter" : "linear_mipmap_linear",
+					"magfilter" : "linear"
+				}
+			},
+
+			// New render state.
+			"renderstate" : {
+				"blendstate" : {
+					"rendertarget" : [
+						{
+							"enable" : true,
+							"srcblend" : "srcalpha",
+							"destblend" : "invsrcalpha",
+							"blendop" : "add",
+							"srcblendalpha" : "srcalpha",
+							"destblendalpha" : "invsrcalpha",
+							"blendopalpha" : "add",
+							"writemask" : 15
+						}
+					]
+				},
+
+				"depthstencilstate" : {
+					"depthtestenable" : false,
+					"depthwriteenable" : false,
+					"depthfunc" : "lessequal",
+					"stencilenable" : false
+				},
+
+				"rasteriserstate" : {
+					"fillmode" : "solid",
+					"cullmode" : "none",
+					"depthclipenable" : true,
+					"antialiasedlineenable" : true
+				}
+			}
+		},
+
+		{
+			"type"			: "ScnFont",
+			"name"			: "courier",
+
+			"source"		: "Content/Fonts/courier.ttf",
+			"distancefield"	: true,
+			"nominalsize"	: 64,
+			"spread"		: 24
+		}
+	]
+}

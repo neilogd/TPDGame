@@ -75,6 +75,7 @@
 #include "System/SysKernel.h"
 #include "System/SysSystem.h"
 #include "GaHotspotComponent.h"
+#include "GaMenuComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaTentacleComponent.h"
 void AutoGenRegisterReflection()
@@ -183,6 +184,9 @@ void AutoGenRegisterReflection()
 	SysSystem::StaticRegisterClass();
 	GaHotspotProcessor::StaticRegisterClass();
 	GaHotspotComponent::StaticRegisterClass();
+	GaMenuEntry::StaticRegisterClass();
+	GaMenuProcessor::StaticRegisterClass();
+	GaMenuComponent::StaticRegisterClass();
 	GaPhysicsProcessor::StaticRegisterClass();
 	GaPhysicsComponent::StaticRegisterClass();
 	GaTentacleProcessor::StaticRegisterClass();

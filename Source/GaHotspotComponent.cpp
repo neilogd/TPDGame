@@ -47,58 +47,21 @@ GaHotspotProcessor::~GaHotspotProcessor()
 void GaHotspotProcessor::initialise()
 {
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, this,
-		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		[ this ]( EvtID ID, const EvtBaseEvent& InEvent )->eEvtReturn
 		{
 			const auto& Event = InEvent.get< OsEventInputMouse >();
-
-			for( auto* Hotspot : HotspotComponents_ )
-			{
-				auto* ParentEntity = Hotspot->getParentEntity();
-				const MaVec3d Position = Hotspot->getPosition();
-				const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
-				const MaVec2d CornerA = Position.xy() - Hotspot->Size_;	
-				const MaVec2d CornerB = Position.xy() + Hotspot->Size_;				
-				if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
-					MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
-				{
-					GaHotspotEvent OutEvent;
-					OutEvent.ID_ = Hotspot->ID_;
-					OutEvent.Position_ = MousePosition;
-					OutEvent.RelativePosition_ = MousePosition - Position.xy();
-					ParentEntity->publish( gaEVT_HOTSPOT_PRESSED, OutEvent );
-					return evtRET_PASS;
-				}
-			}
-
+			MouseEvents_.push_back( std::make_pair( ID, Event ) );
 			return evtRET_PASS;
 		} );
 
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, this,
-		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		[ this ]( EvtID ID, const EvtBaseEvent& InEvent )->eEvtReturn
 		{
 			const auto& Event = InEvent.get< OsEventInputMouse >();
-
-			for( auto* Hotspot : HotspotComponents_ )
-			{
-				auto* ParentEntity = Hotspot->getParentEntity();
-				const MaVec3d Position = Hotspot->getPosition();
-				const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
-				const MaVec2d CornerA = Position.xy() - Hotspot->Size_;	
-				const MaVec2d CornerB = Position.xy() + Hotspot->Size_;				
-				if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
-					MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
-				{
-					GaHotspotEvent OutEvent;
-					OutEvent.ID_ = Hotspot->ID_;
-					OutEvent.Position_ = MousePosition;
-					OutEvent.RelativePosition_ = MousePosition - Position.xy();
-					ParentEntity->publish( gaEVT_HOTSPOT_HOVER, OutEvent );
-					return evtRET_PASS;
-				}
-			}
-
+			MouseEvents_.push_back( std::make_pair( ID, Event ) );
 			return evtRET_PASS;
-		} );}
+		} );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // shutdown
@@ -126,8 +89,48 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 	std::sort( HotspotComponents_.begin(), HotspotComponents_.end(), 
 		[]( const GaHotspotComponent* A, const GaHotspotComponent* B )
 		{
-			return A->getPosition().z() < B->getPosition().z();
+			return A->Layer_ < B->Layer_;
 		} );
+
+	// Process pending events.
+	for( const auto& EventPair : MouseEvents_ )
+	{
+		const EvtID ID = EventPair.first;
+		const OsEventInputMouse Event = EventPair.second;
+
+		for( auto* Hotspot : HotspotComponents_ )
+		{
+			auto* ParentEntity = Hotspot->getParentEntity();
+			const MaVec2d Position = Hotspot->getPosition();
+			const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
+			const MaVec2d CornerA = Position - Hotspot->Size_;	
+			const MaVec2d CornerB = Position + Hotspot->Size_;				
+			if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
+				MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
+			{
+				GaHotspotEvent OutEvent;
+				OutEvent.ID_ = Hotspot->ID_;
+				OutEvent.Position_ = MousePosition;
+				OutEvent.RelativePosition_ = MousePosition - Position;
+				if( ID == osEVT_INPUT_MOUSEDOWN )
+				{
+					ParentEntity->publish( gaEVT_HOTSPOT_PRESSED, OutEvent );
+					break;
+				}
+				else if( ID == osEVT_INPUT_MOUSEMOVE )
+				{
+					ParentEntity->publish( gaEVT_HOTSPOT_HOVER, OutEvent );
+					break;
+				}				
+			}
+		}
+	}
+
+	// No more events.
+	MouseEvents_.clear();
+
+	// No more hotspots.
+	HotspotComponents_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,11 +149,10 @@ void GaHotspotProcessor::debugDraw( const ScnComponentList& Components )
 			BcAssert( InComponent->isTypeOf< GaHotspotComponent >() );
 			auto* Component = static_cast< GaHotspotComponent* >( InComponent.get() );
 
-			MaVec3d Position = Component->getParentEntity()->getWorldPosition() + Component->Position_;
-
-			MaVec2d CornerA = Position.xy() - Component->Size_;
-			MaVec2d CornerB = Position.xy() + Component->Size_;
-			DrawList->AddRectFilled( CornerA, CornerB, 0x20ffffff, 1.0f, 15 );
+			MaVec2d Position = Component->getPosition();
+			MaVec2d CornerA = Position;
+			MaVec2d CornerB = Position + Component->Size_;
+			DrawList->AddRect( CornerA, CornerB, 0xffffffff );
 		}
 
 		DrawList->PopClipRect();
@@ -179,10 +181,21 @@ void GaHotspotComponent::StaticRegisterClass()
 // Ctor
 GaHotspotComponent::GaHotspotComponent():
 	ID_( 0 ),
-	Position_( 0.0f, 0.0f, 0.0f ),
+	Layer_( 0 ),
+	Position_( 0.0f, 0.0f ),
 	Size_( 0.0f, 0.0f )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+GaHotspotComponent::GaHotspotComponent( BcU32 ID, BcS32 Layer, MaVec2d Position, MaVec2d Size ):
+	ID_( ID ),
+	Layer_( Layer ),
+	Position_( Position ),
+	Size_( Size )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -193,8 +206,22 @@ GaHotspotComponent::~GaHotspotComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getPosition
-MaVec3d GaHotspotComponent::getPosition() const
+// getID
+BcU32 GaHotspotComponent::getID() const
 {
-	return getParentEntity()->getWorldPosition() + Position_;
+	return ID_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPosition
+MaVec2d GaHotspotComponent::getPosition() const
+{
+	return getParentEntity()->getWorldPosition().xy() + Position_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSize
+MaVec2d GaHotspotComponent::getSize() const
+{
+	return Size_;
 }

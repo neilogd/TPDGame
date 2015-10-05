@@ -12,6 +12,22 @@
 					"enableclearstencil" : true,
 					"clearcolour" : "0.0, 0.0, 0.0, 0.0",
 					"rendermask" : 1
+				},
+
+				{
+					"type" : "ScnCanvasComponent",
+					"clear" : true,
+					"noofvertices" : 4096,
+					"left" : 0.0,
+					"top" : 0.0,
+					"right" : 1.0,
+					"bottom" : 1.0
+				},
+
+				{
+					"type" : "ScnFontComponent",
+					"font" : "$(ScnFont:fonts.courier)",
+					"material" : "$(ScnMaterial:fonts.font_material)"
 				}
 			]
 		},

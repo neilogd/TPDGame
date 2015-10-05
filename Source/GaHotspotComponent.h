@@ -2,6 +2,7 @@
 
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
+#include "System/Os/OsEvents.h"
 	
 ////////////////////////////////////////////////////////////////////////////////
 // GaHotspotEvents
@@ -38,7 +39,7 @@ public:
 
 private:
 	std::vector< class GaHotspotComponent* > HotspotComponents_;
-	
+	std::vector< std::pair< EvtID, OsEventInputMouse > > MouseEvents_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,15 +51,19 @@ public:
 	REFLECTION_DECLARE_DERIVED( GaHotspotComponent, ScnComponent );
 
 	GaHotspotComponent();
+	GaHotspotComponent( BcU32 ID, BcS32 Layer, MaVec2d Position, MaVec2d Size );
 	virtual ~GaHotspotComponent();
 
-	MaVec3d getPosition() const;
+	BcU32 getID() const;
+	MaVec2d getPosition() const;
+	MaVec2d getSize() const;
 
 private:
 	friend class GaHotspotProcessor;
 
 	BcU32 ID_;
-	MaVec3d Position_;
+	BcS32 Layer_;
+	MaVec2d Position_;
 	MaVec2d Size_;
 	
 };
