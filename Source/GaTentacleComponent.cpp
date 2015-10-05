@@ -24,7 +24,13 @@ void GaTentacleProcessor::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 GaTentacleProcessor::GaTentacleProcessor():
-	ScnComponentProcessor()
+	ScnComponentProcessor( 
+		{
+			ScnComponentProcessFuncEntry(
+				"Update simulations",
+				ScnComponentPriority::PHYSICS_WORLD_SIMULATE,
+				std::bind( &GaTentacleProcessor::update, this, std::placeholders::_1 ) ),
+		} )
 {
 }
 
@@ -50,6 +56,30 @@ void GaTentacleProcessor::shutdown()
 	
 }
 
+//////////////////////////////////////////////////////////////////////////
+// update
+void GaTentacleProcessor::update( const ScnComponentList& Components )
+{
+	const BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	static BcF32 Timer = 0.0f;
+	if( Components.size() > 0 )
+	{
+		MaVec2d Offset( MaVec2d( BcCos( Timer * 5.0f ), BcSin( Timer ) * 4.0f ) * 64.0f );
+		Timer += Tick * 0.25f;
+		for( auto InComponent : Components )
+		{
+			BcAssert( InComponent->isTypeOf< GaTentacleComponent >() );
+			auto* Component = static_cast< GaTentacleComponent* >( InComponent.get() );
+			auto* Physics = Component->getParentEntity()->getComponentByType< GaPhysicsComponent >();
+				
+			Physics->setPointMassPosition( 0, Component->getParentEntity()->getWorldPosition().xy() + Offset );
+		}
+	}
+	else
+	{
+		Timer = 0.0f;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection

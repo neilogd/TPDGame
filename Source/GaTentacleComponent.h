@@ -17,6 +17,8 @@ public:
 	void initialise() override;
 	void shutdown() override;
 
+	void update( const ScnComponentList& Components );
+
 private:
 	
 };
