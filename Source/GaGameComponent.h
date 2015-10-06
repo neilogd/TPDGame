@@ -42,10 +42,13 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
+	
 private:
 	friend class GaGameProcessor;
 
-	BcU32 Level_;
+	BcU32 Level_ = 0;
+	BcF32 GamePhaseTime_ = 30.0f;
+	std::vector< ScnEntity* > StructureTemplates_;
 
 	enum class GameState
 	{
@@ -56,15 +59,31 @@ private:
 
 		MAX
 	};
+	 
+	enum class InputState
+	{
+		IDLE,
+		BUILD_BUILDING,
+		SELECTED_BUILDING,
 
-	void setState( GameState GameState );
+		MAX
+	};
+
+	void setGameState( GameState GameState );
+	void setInputState( InputState InputState );
 
 	GameState GameState_ = GameState::IDLE;
+	InputState InputState_ = InputState::IDLE;
+
+	// Game state specific.
 	BcF32 GameTimer_ = 0.0f;
-	BcF32 GamePhaseTime_ = 30.0f;
+
+	// Input state specific.
+	class GaStructureComponent* BuildStructure_ = nullptr;
+	
+
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
-	
 	
 
 };

@@ -7,7 +7,14 @@
 			"components" : [
 				{
 					"type" : "GaGameComponent",
-					"level" : 0
+					"level" : 0,
+
+					"gamephasetime" : 30.0,
+					"structuretemplates" : [
+						"$(ScnEntity:structures.StructureEntity_0)",
+						"$(ScnEntity:structures.StructureEntity_1)",
+						"$(ScnEntity:structures.StructureEntity_2)"
+					]
 				}
 			]
 		},

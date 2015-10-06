@@ -1,6 +1,8 @@
 #include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
+#include "GaStructureComponent.h"
 #include "GaPositionUtility.h"
+
 
 #include "System/Debug/DsCore.h"
 #include "System/Debug/DsImGui.h"
@@ -124,12 +126,14 @@ void GaGameProcessor::advanceGameTimer( GaGameComponent* Component, BcF32 Tick )
 	if( Component->GameState_ == GaGameComponent::GameState::BUILD_PHASE &&
 		LevelGameTimer > HalfGamePhaseTime )
 	{
-		Component->setState( GaGameComponent::GameState::DEFEND_PHASE );
+		Component->setGameState( GaGameComponent::GameState::DEFEND_PHASE );
+		Component->setInputState( GaGameComponent::InputState::IDLE );
 	}
 	else if( Component->GameState_ == GaGameComponent::GameState::DEFEND_PHASE &&
 		LevelGameTimer < HalfGamePhaseTime )
 	{
-		Component->setState( GaGameComponent::GameState::BUILD_PHASE );
+		Component->setGameState( GaGameComponent::GameState::BUILD_PHASE );
+		Component->setInputState( GaGameComponent::InputState::IDLE );
 	}
 }
 
@@ -137,7 +141,7 @@ void GaGameProcessor::advanceGameTimer( GaGameComponent* Component, BcF32 Tick )
 // onIdle
 void GaGameProcessor::onIdle( GaGameComponent* Component, BcF32 Tick )
 {
-	Component->setState( GaGameComponent::GameState::BUILD_PHASE );
+	Component->setGameState( GaGameComponent::GameState::BUILD_PHASE );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,6 +150,37 @@ void GaGameProcessor::onBuildPhase( GaGameComponent* Component, BcF32 Tick )
 {
 	advanceGameTimer( Component, Tick );
 
+	// TODO BUILD MENU.
+#if !PSY_PRODUCTION
+		if( ImGui::Begin( "Game Debug" ) )
+		{
+			if( Component->InputState_ == GaGameComponent::InputState::IDLE )
+			{
+				for( auto StructureEntity : Component->StructureTemplates_ )
+				{
+					auto* StructureComponent = StructureEntity->getComponentByType< GaStructureComponent >();
+					std::string ButtonText = std::string( "Build " ) + (*StructureComponent->getName());
+					if( ImGui::Button( ButtonText.c_str() ) )
+					{
+						Component->BuildStructure_ = StructureComponent;
+						Component->setInputState( GaGameComponent::InputState::BUILD_BUILDING );
+					}
+				}
+			}
+			else if( Component->InputState_ == GaGameComponent::InputState::BUILD_BUILDING )
+			{
+				ImGui::Text( "Selected to build: %s", (*Component->BuildStructure_->getName()).c_str() );
+				if( ImGui::Button( "Cancel build" ) )
+				{
+					Component->BuildStructure_ = nullptr;
+					Component->setInputState( GaGameComponent::InputState::IDLE );
+				}
+			}
+
+			ImGui::Separator();
+			ImGui::End();
+		}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,6 +207,8 @@ void GaGameComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Level_", &GaGameComponent::Level_, bcRFF_IMPORTER ),
+		new ReField( "GamePhaseTime_", &GaGameComponent::GamePhaseTime_, bcRFF_IMPORTER ),
+		new ReField( "StructureTemplates_", &GaGameComponent::StructureTemplates_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 	};
 
 	ReRegisterClass< GaGameComponent, Super >( Fields )
@@ -231,9 +268,17 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setState
-void GaGameComponent::setState( GameState GameState )
+// setGameState
+void GaGameComponent::setGameState( GameState GameState )
 {
-	PSY_LOG( "Changing state from %u -> %u", GameState_, GameState );
+	PSY_LOG( "Changing game state from %u -> %u", GameState_, GameState );
 	GameState_ = GameState;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setInputState
+void GaGameComponent::setInputState( InputState InputState )
+{
+	PSY_LOG( "Changing input state from %u -> %u", InputState_, InputState );
+	InputState_ = InputState;
 }

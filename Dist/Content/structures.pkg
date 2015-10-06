@@ -1,0 +1,39 @@
+{
+	"resources" : [
+		{
+			"name"		:		"StructureEntity_0",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaStructureComponent",
+					"name" : "GaStructureComponent_0"
+				}
+			]
+		},
+
+		{
+			"name"		:		"StructureEntity_1",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaStructureComponent",
+					"name" : "GaStructureComponent_1"
+				}
+			]
+		},
+
+		{
+			"name"		:		"StructureEntity_2",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaStructureComponent",
+					"name" : "GaStructureComponent_2"
+				}
+			]
+		}		
+	]
+}

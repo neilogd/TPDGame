@@ -68,7 +68,8 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 		Timer += Tick * 0.25f;
 		for( auto InComponent : Components )
 		{
-			BcAssert( InComponent->isTypeOf< GaTentacleComponent >() );
+			BcAssert( InComponent->isTypeOf<
+				GaTentacleComponent >() );
 			auto* Component = static_cast< GaTentacleComponent* >( InComponent.get() );
 			auto* Physics = Component->getParentEntity()->getComponentByType< GaPhysicsComponent >();
 				
