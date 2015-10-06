@@ -11,6 +11,8 @@
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/Rendering/ScnFont.h"
 
+#include "System/SysKernel.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_DERIVED( GaGameProcessor );
@@ -60,11 +62,56 @@ void GaGameProcessor::shutdown()
 // drawMenus
 void GaGameProcessor::update( const ScnComponentList& Components )
 {
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 	for( auto InComponent : Components )
 	{
 		BcAssert( InComponent->isTypeOf< GaGameComponent >() );
 		auto* Component = static_cast< GaGameComponent* >( InComponent.get() );
+
+		// Handle game state specific stuff.
+		switch( Component->GameState_ )
+		{
+		case GaGameComponent::GameState::IDLE:
+			onIdle( Component, Tick );
+			break;
+		case GaGameComponent::GameState::BUILD_PHASE:
+			onBuildPhase( Component, Tick );
+			break;
+		case GaGameComponent::GameState::DEFEND_PHASE:
+			onDefendPhase( Component, Tick );
+			break;
+		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// advanceGameTimer
+void GaGameProcessor::advanceGameTimer( GaGameComponent* Component, BcF32 Tick )
+{
+	Component->GameTimer_ += Tick;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onIdle
+void GaGameProcessor::onIdle( GaGameComponent* Component, BcF32 Tick )
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onBuildPhase
+void GaGameProcessor::onBuildPhase( GaGameComponent* Component, BcF32 Tick )
+{
+	advanceGameTimer( Component, Tick );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDefendPhase
+void GaGameProcessor::onDefendPhase( GaGameComponent* Component, BcF32 Tick )
+{
+	advanceGameTimer( Component, Tick );
+
 }
 
 //////////////////////////////////////////////////////////////////////////

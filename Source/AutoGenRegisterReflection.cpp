@@ -78,6 +78,8 @@
 #include "GaHotspotComponent.h"
 #include "GaMenuComponent.h"
 #include "GaPhysicsComponent.h"
+#include "GaStructureBehaviour.h"
+#include "GaStructureComponent.h"
 #include "GaTentacleComponent.h"
 void AutoGenRegisterReflection()
 {
@@ -192,6 +194,9 @@ void AutoGenRegisterReflection()
 	GaMenuComponent::StaticRegisterClass();
 	GaPhysicsProcessor::StaticRegisterClass();
 	GaPhysicsComponent::StaticRegisterClass();
+	GaStructureBehaviour::StaticRegisterClass();
+	GaStructureProcessor::StaticRegisterClass();
+	GaStructureComponent::StaticRegisterClass();
 	GaTentacleProcessor::StaticRegisterClass();
 	GaTentacleComponent::StaticRegisterClass();
 }

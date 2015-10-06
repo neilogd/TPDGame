@@ -144,6 +144,7 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 // debugDraw
 void GaPhysicsProcessor::debugDraw( const ScnComponentList& Components )
 {			
+#if !PSY_PRODUCTION
 	ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
 	ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
 	if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
@@ -182,6 +183,7 @@ void GaPhysicsProcessor::debugDraw( const ScnComponentList& Components )
 		DrawList->PopClipRect();
 		ImGui::End();
 	}
+#endif // !PSY_PRODUCTION
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -20,6 +20,10 @@ public:
 	void update( const ScnComponentList& Components );
 
 private:
+	void advanceGameTimer( class GaGameComponent* Component, BcF32 Tick );
+	void onIdle( class GaGameComponent* Component, BcF32 Tick );
+	void onBuildPhase( class GaGameComponent* Component, BcF32 Tick );
+	void onDefendPhase( class GaGameComponent* Component, BcF32 Tick );
 	
 };
 
@@ -42,6 +46,15 @@ private:
 
 	BcU32 Level_;
 
+	enum class GameState
+	{
+		IDLE,
+		BUILD_PHASE,
+		DEFEND_PHASE,
+	};
+
+	GameState GameState_ = GameState::IDLE;
+	BcF32 GameTimer_;
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
 };
