@@ -64,6 +64,8 @@ void GaStructureProcessor::update( const ScnComponentList& Components )
 	{
 		BcAssert( InComponent->isTypeOf< GaStructureComponent >() );
 		auto* Component = static_cast< GaStructureComponent* >( InComponent.get() );
+
+		
 	}
 }
 
@@ -76,6 +78,7 @@ void GaStructureComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Level_", &GaStructureComponent::Level_, bcRFF_IMPORTER ),
+		new ReField( "Active_", &GaStructureComponent::Active_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< GaStructureComponent, Super >( Fields )

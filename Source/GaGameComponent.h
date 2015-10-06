@@ -59,7 +59,7 @@ private:
 
 		MAX
 	};
-	 
+	
 	enum class InputState
 	{
 		IDLE,

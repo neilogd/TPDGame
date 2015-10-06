@@ -42,8 +42,9 @@ public:
 private:
 	friend class GaStructureProcessor;
 
-	BcU32 Level_;
-
+	BcU32 Level_ = 0;
+	BcBool Active_ = BcFalse;
+ 
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
 };
