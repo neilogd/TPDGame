@@ -24,6 +24,7 @@ private:
 	void onIdle( class GaGameComponent* Component, BcF32 Tick );
 	void onBuildPhase( class GaGameComponent* Component, BcF32 Tick );
 	void onDefendPhase( class GaGameComponent* Component, BcF32 Tick );
+	void onGameOver( class GaGameComponent* Component, BcF32 Tick );
 	
 };
 
@@ -51,10 +52,19 @@ private:
 		IDLE,
 		BUILD_PHASE,
 		DEFEND_PHASE,
+		GAME_OVER,
+
+		MAX
 	};
 
+	void setState( GameState GameState );
+
 	GameState GameState_ = GameState::IDLE;
-	BcF32 GameTimer_;
+	BcF32 GameTimer_ = 0.0f;
+	BcF32 GamePhaseTime_ = 30.0f;
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
+	
+	
+
 };

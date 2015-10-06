@@ -6,6 +6,16 @@
 #include "Math/MaMat4d.h"
 #include "Math/MaPlane.h"
 #include "Math/MaQuat.h"
+#include "Reflection/ReAttributable.h"
+#include "Reflection/ReAttribute.h"
+#include "Reflection/ReClass.h"
+#include "Reflection/ReClassSerialiser.h"
+#include "Reflection/ReEnum.h"
+#include "Reflection/ReEnumConstant.h"
+#include "Reflection/ReField.h"
+#include "Reflection/ReITypeSerialiser.h"
+#include "Reflection/ReObject.h"
+#include "Reflection/RePrimitive.h"
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsPackageImporter.h"
 #include "System/Content/CsPlatformParams.h"
@@ -13,6 +23,7 @@
 #include "System/Content/CsResource.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Content/CsTypes.h"
+#include "System/Debug/DsImGuiFieldEditor.h"
 #include "System/File/FsTypes.h"
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsCoreImpl.h"
@@ -91,6 +102,16 @@ void AutoGenRegisterReflection()
 	MaMat4d::StaticRegisterClass();
 	MaPlane::StaticRegisterClass();
 	MaQuat::StaticRegisterClass();
+	ReAttributable::StaticRegisterClass();
+	ReAttribute::StaticRegisterClass();
+	ReClass::StaticRegisterClass();
+	ReClassSerialiser::StaticRegisterClass();
+	ReEnum::StaticRegisterClass();
+	ReEnumConstant::StaticRegisterClass();
+	ReField::StaticRegisterClass();
+	ReITypeSerialiser::StaticRegisterClass();
+	ReObject::StaticRegisterClass();
+	RePrimitive::StaticRegisterClass();
 	CsPackage::StaticRegisterClass();
 	CsPackageDependencies::StaticRegisterClass();
 	CsPlatformParams::StaticRegisterClass();
@@ -100,6 +121,7 @@ void AutoGenRegisterReflection()
 	CsResourceImporterAttribute::StaticRegisterClass();
 	CsResourceImporter::StaticRegisterClass();
 	CsDependency::StaticRegisterClass();
+	DsImGuiFieldEditor::StaticRegisterClass();
 	FsTimestamp::StaticRegisterClass();
 	FsStats::StaticRegisterClass();
 	RsCore::StaticRegisterClass();

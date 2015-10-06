@@ -211,7 +211,6 @@ void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 
 			ScnCore::pImpl()->spawnEntity( SpawnParams );
 
-
 			PSY_LOG( "Spawning menu %s.%s", Entry.EntityPackage_.c_str(), Entry.EntityName_.c_str() );
 						
 			return evtRET_PASS;

@@ -62,6 +62,8 @@ void GaGameProcessor::shutdown()
 // drawMenus
 void GaGameProcessor::update( const ScnComponentList& Components )
 {
+	BcAssert( Components.size() <= 1 );
+
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 	for( auto InComponent : Components )
 	{
@@ -80,7 +82,32 @@ void GaGameProcessor::update( const ScnComponentList& Components )
 		case GaGameComponent::GameState::DEFEND_PHASE:
 			onDefendPhase( Component, Tick );
 			break;
+		case GaGameComponent::GameState::GAME_OVER:
+			break;
 		}
+
+#if !PSY_PRODUCTION
+		if( ImGui::Begin( "Game Debug" ) )
+		{
+			ImGui::Text( "Game timer: %f", Component->GameTimer_ );
+			ImGui::Text( "Game state: %u", Component->GameState_ );
+			if( ImGui::Button( "Back to Main Menu" ) )
+			{
+				ScnEntitySpawnParams SpawnParams( 
+						BcName::INVALID, "menus", "MainMenu",
+						MaMat4d(), Component->getParentEntity()->getParentEntity() );
+				SpawnParams.OnSpawn_ = [ Component ]( ScnEntity* Entity )
+					{
+						ScnCore::pImpl()->removeEntity( Component->getParentEntity() );
+					};
+
+				ScnCore::pImpl()->spawnEntity( SpawnParams );
+
+			}
+			ImGui::Separator();
+			ImGui::End();
+		}
+#endif
 	}
 }
 
@@ -89,13 +116,28 @@ void GaGameProcessor::update( const ScnComponentList& Components )
 void GaGameProcessor::advanceGameTimer( GaGameComponent* Component, BcF32 Tick )
 {
 	Component->GameTimer_ += Tick;
+
+	const BcF32 LevelGameTimer = std::fmodf( Component->GameTimer_, Component->GamePhaseTime_ );
+	const BcF32 HalfGamePhaseTime = Component->GamePhaseTime_ * 0.5f;
+
+	// Swap between states at the half way/wrap points.
+	if( Component->GameState_ == GaGameComponent::GameState::BUILD_PHASE &&
+		LevelGameTimer > HalfGamePhaseTime )
+	{
+		Component->setState( GaGameComponent::GameState::DEFEND_PHASE );
+	}
+	else if( Component->GameState_ == GaGameComponent::GameState::DEFEND_PHASE &&
+		LevelGameTimer < HalfGamePhaseTime )
+	{
+		Component->setState( GaGameComponent::GameState::BUILD_PHASE );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onIdle
 void GaGameProcessor::onIdle( GaGameComponent* Component, BcF32 Tick )
 {
-	
+	Component->setState( GaGameComponent::GameState::BUILD_PHASE );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,6 +153,13 @@ void GaGameProcessor::onBuildPhase( GaGameComponent* Component, BcF32 Tick )
 void GaGameProcessor::onDefendPhase( GaGameComponent* Component, BcF32 Tick )
 {
 	advanceGameTimer( Component, Tick );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onGameOver
+void GaGameProcessor::onGameOver( GaGameComponent* Component, BcF32 Tick )
+{
 
 }
 
@@ -179,4 +228,12 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Parent->unsubscribeAll( this );
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setState
+void GaGameComponent::setState( GameState GameState )
+{
+	PSY_LOG( "Changing state from %u -> %u", GameState_, GameState );
+	GameState_ = GameState;
 }

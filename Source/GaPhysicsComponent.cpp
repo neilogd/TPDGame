@@ -47,36 +47,6 @@ GaPhysicsProcessor::~GaPhysicsProcessor()
 // initialise
 void GaPhysicsProcessor::initialise()
 {
-#if !PSY_PRODUCTION
-	DsCore::pImpl()->registerPanel(
-		"Physics Settings", [ this ]( BcU32 )->void
-		{
-			static bool ShowOpened = true;
-			if ( ImGui::Begin( "Physics Settings", &ShowOpened ) )
-			{
-				BcF32 InvTick = 1.0f / TickRate_;
-				if( ImGui::InputFloat( "Tick rate (hz)", &InvTick ) )
-				{
-					if( InvTick > 0.0f && InvTick < 480.0f )
-					{
-						TickRate_ = 1.0f / InvTick;
-					}
-				}
-
-				int Iterations = static_cast< int >( Iterations_ );
-				if( ImGui::InputInt( "Iterations", &Iterations ) )
-				{
-					if( Iterations >= 1 && Iterations <= 32 )
-					{
-						Iterations_ = static_cast< BcU32 >( Iterations );
-					}
-				}
-
-				ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
-			}
-			ImGui::End();
-		} );
-#endif // !PSY_PRODUCTION
 
 }
 
@@ -138,6 +108,33 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 	}
 
 	TimeTaken_ = Timer.time();
+
+#if !PSY_PRODUCTION
+	if ( ImGui::Begin( "Game Debug" ) )
+	{
+		BcF32 InvTick = 1.0f / TickRate_;
+		if( ImGui::InputFloat( "Physics Tick rate (hz)", &InvTick ) )
+		{
+			if( InvTick > 0.0f && InvTick < 480.0f )
+			{
+				TickRate_ = 1.0f / InvTick;
+			}
+		}
+
+		int Iterations = static_cast< int >( Iterations_ );
+		if( ImGui::InputInt( "Physics Iterations", &Iterations ) )
+		{
+			if( Iterations >= 1 && Iterations <= 32 )
+			{
+				Iterations_ = static_cast< BcU32 >( Iterations );
+			}
+		}
+
+		ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
+		ImGui::Separator();
+		ImGui::End();
+	}
+#endif // !PSY_PRODUCTION
 }
 
 //////////////////////////////////////////////////////////////////////////
