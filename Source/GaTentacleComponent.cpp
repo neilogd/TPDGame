@@ -1,4 +1,5 @@
 #include "GaTentacleComponent.h"
+#include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
 
@@ -64,6 +65,11 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 	static BcF32 Timer = 0.0f;
 	if( Components.size() > 0 )
 	{
+		// Grab game component.
+		auto FirstComponent = Components[0];
+		auto Game = static_cast< GaGameComponent* >( FirstComponent.get() )->getComponentAnyParentByType< GaGameComponent >();
+		
+		// Update each tentacle.
 		MaVec2d Offset( MaVec2d( BcCos( Timer * 5.0f ), BcSin( Timer ) * 4.0f ) * 64.0f );
 		Timer += Tick * 0.25f;
 		for( auto InComponent : Components )
@@ -72,7 +78,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 				GaTentacleComponent >() );
 			auto* Component = static_cast< GaTentacleComponent* >( InComponent.get() );
 			auto* Physics = Component->getParentEntity()->getComponentByType< GaPhysicsComponent >();
-				
+			
 			Physics->setPointMassPosition( 0, Component->getParentEntity()->getWorldPosition().xy() + Offset );
 		}
 	}
@@ -127,9 +133,12 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 
 	// Head point used to nagivate.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, -1.0f, 1.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 2, -1.0f, 1.0f ) );
-	size_t PointOffset = 1;
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+
+	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 0.5f, 1.0f / 1.0f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 1, 3, -1.0f, 1.0f ) );
+	size_t PointOffset = 2;
 	MaVec2d Offset( 0.0f, SectionHeight );
 	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
 	{
@@ -181,8 +190,12 @@ void GaTentacleComponent::setupDiamondTopology( MaVec2d RootPosition, BcF32 Widt
 	const BcF32 HalfWidth = Width * 0.5f;
 	const BcF32 HalfSectionHeight = SectionHeight * 0.5f;
 
+	// Head point for moving it round.
+	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+
 	// Head point used to nagivate.
-	size_t PointOffset = 0;
+	size_t PointOffset = 1;
 	MaVec2d Offset( 0.0f, SectionHeight );
 	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
 	{
@@ -242,8 +255,11 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 
 	// Head point used to nagivate.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, -1.0f, 1.0f ) );
-	size_t PointOffset = 1;
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+
+	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 0.1f, 1.0f / 1.0f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
+	size_t PointOffset = 2;
 	size_t Distance = 8;
 	BcF32 LargeConstraintSize = 0.1f;
 	MaVec2d Offset( 0.0f, SectionHeight );
@@ -284,10 +300,10 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 // onAttach
 void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	setupComplexTopology( Parent->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
+	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
 
 	// Setup callback for clicking.
-	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,
+	getParentEntity()->subscribe( gaEVT_HOTSPOT_HOVER, this,
 		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
@@ -315,6 +331,7 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	getParentEntity()->unsubscribeAll( this );
 	Super::onDetach( Parent );
 }
 

@@ -45,5 +45,8 @@ public:
 	
 private:
 	friend class GaTentacleProcessor;
+
+	// TODO: Replace with something more predictable, like a spline.
+	MaVec2d TargetPosition_;
 	
 };

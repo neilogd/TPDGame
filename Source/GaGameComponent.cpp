@@ -124,9 +124,9 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 
-			if( BuildStructure_ )
+			if( SelectedStructure_ )
 			{
-				BuildStructure_->getParentEntity()->setLocalPosition( 
+				SelectedStructure_->getParentEntity()->setLocalPosition( 
 					MaVec3d( Event.Position_, 0.0f ) );
 			}
 			return evtRET_PASS;
@@ -138,12 +138,12 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 
-			if( BuildStructure_ )
+			if( SelectedStructure_ )
 			{
-				BuildStructure_->getParentEntity()->setLocalPosition( 
+				SelectedStructure_->getParentEntity()->setLocalPosition( 
 					MaVec3d( Event.Position_, 0.0f ) );
-				BuildStructure_->setActive( BcTrue );
-				BuildStructure_ = nullptr;
+				buildStructure( SelectedStructure_ );
+				SelectedStructure_ = nullptr;
 				setInputState( InputState::IDLE );
 			}
 			return evtRET_PASS;
@@ -158,11 +158,11 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	TransformB.translation( MaVec3d( TentacleB, 0.0f ) );
 	ScnCore::pImpl()->spawnEntity( 
 		ScnEntitySpawnParams( 
-			BcName::INVALID, "game", "TentacleEntity",
+			BcName::INVALID, "tentacles", "TentacleEntity_0",
 			TransformA, Parent ) );
 	ScnCore::pImpl()->spawnEntity( 
 		ScnEntitySpawnParams( 
-			BcName::INVALID, "game", "TentacleEntity",
+			BcName::INVALID, "tentacles", "TentacleEntity_0",
 			TransformB, Parent ) );
 
 	
@@ -175,6 +175,13 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Parent->unsubscribeAll( this );
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getStructures
+const std::vector< class GaStructureComponent* >& GaGameComponent::getStructures() const
+{
+	return Structures_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,10 +198,10 @@ void GaGameComponent::setInputState( InputState InputState )
 {
 	PSY_LOG( "Changing input state from %u -> %u", InputState_, InputState );
 
-	if( BuildStructure_ )
+	if( SelectedStructure_ )
 	{
-		getParentEntity()->detach( BuildStructure_->getParentEntity() );
-		BuildStructure_ = nullptr;
+		getParentEntity()->detach( SelectedStructure_->getParentEntity() );
+		SelectedStructure_ = nullptr;
 	}
 
 	InputState_ = InputState;
@@ -300,17 +307,17 @@ void GaGameComponent::onBuildPhase( BcF32 Tick )
 						auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams(
 							StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() ) );
 						BcAssert( SpawnedEntity );
-						BuildStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
+						SelectedStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
 					}
 				}
 			}
 			else if( InputState_ == InputState::BUILD_BUILDING )
 			{
-				ImGui::Text( "Selected to build: %s", (*BuildStructure_->getName()).c_str() );
+				ImGui::Text( "Selected to build: %s", (*SelectedStructure_->getName()).c_str() );
 				if( ImGui::Button( "Cancel build" ) )
 				{
 					setInputState( InputState::IDLE );
-					BuildStructure_ = nullptr;
+					SelectedStructure_ = nullptr;
 				}
 			}
 
@@ -333,4 +340,21 @@ void GaGameComponent::onDefendPhase( BcF32 Tick )
 void GaGameComponent::onGameOver( BcF32 Tick )
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildStructure
+void GaGameComponent::buildStructure( GaStructureComponent* Structure )
+{
+	Structures_.push_back( Structure );
+	Structure->setActive( BcTrue );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyStructure
+void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
+{
+	Structure->setActive( BcFalse );
+	std::remove( Structures_.begin(), Structures_.end(), Structure );
+	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
 }

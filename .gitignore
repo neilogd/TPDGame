@@ -4,6 +4,10 @@ Dist/screencapture*.gif
 Dist/imgui.ini
 Dist/Intermediate/
 Dist/PackedContent/
+Dist/*.exe
+Dist/*.exe.dmp
+Dist/*.ilk
+Dist/*.pdb
 Projects/
 *.sublime-workspace
 .DS_Store

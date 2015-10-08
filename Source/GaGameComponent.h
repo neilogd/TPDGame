@@ -37,6 +37,8 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
+	const std::vector< class GaStructureComponent* >& getStructures() const;
+
 private:
 	void update( BcF32 Tick );
 	void advanceGameTimer( BcF32 Tick );
@@ -44,6 +46,9 @@ private:
 	void onBuildPhase( BcF32 Tick );
 	void onDefendPhase( BcF32 Tick );
 	void onGameOver( BcF32 Tick );
+
+	void buildStructure( class GaStructureComponent* Structure );
+	void destroyStructure( class GaStructureComponent* Structure );
 
 	friend class GaGameProcessor;
 
@@ -79,9 +84,10 @@ private:
 	// Game state specific.
 	BcF32 GameTimer_ = 0.0f;
 
+	std::vector< class GaStructureComponent* > Structures_;
+
 	// Input state specific.
-	class GaStructureComponent* BuildStructure_ = nullptr;
-	
+	class GaStructureComponent* SelectedStructure_ = nullptr;
 
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;

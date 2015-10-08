@@ -1,0 +1,18 @@
+{
+	"resources" : [
+		{
+			"name"		:		"TentacleEntity_0",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaTentacleComponent"
+				}
+			]
+		}
+	]
+}
