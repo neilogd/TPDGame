@@ -1,0 +1,39 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "material",
+
+			// Shader
+			"shader"		: "$(ScnShader:shaders.default_shader)",
+
+			// New render state.
+			"renderstate" : {
+				"blendstate" : {
+					"rendertarget" : [
+						{
+							"enable" : false,
+							"srcblend" : "srcalpha",
+							"destblend" : "invsrcalpha",
+							"blendop" : "add",
+							"srcblendalpha" : "srcalpha",
+							"destblendalpha" : "invsrcalpha",
+							"blendopalpha" : "add",
+							"writemask" : 15
+						}
+					]
+				},
+
+				"depthstencilstate" : {
+					"depthtestenable" : false,
+					"depthwriteenable" : false
+				},
+
+				"rasteriserstate" : {
+					"fillmode" : "solid",
+					"cullmode" : "none"
+				}
+			}
+		}
+	]
+}

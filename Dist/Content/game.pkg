@@ -9,12 +9,20 @@
 					"type" : "GaGameComponent",
 					"level" : 0,
 
-					"gamephasetime" : 30.0,
+					"gamephasetime" : 300.0,
 					"structuretemplates" : [
 						"$(ScnEntity:structures.StructureEntity_0)",
 						"$(ScnEntity:structures.StructureEntity_1)",
 						"$(ScnEntity:structures.StructureEntity_2)"
 					]
+				},
+
+				{
+					"type" : "GaHotspotComponent",
+					"id" : 0,
+					"layer" : -1000,
+					"position" : "0.0, 0.0",
+					"size" : "-1.0, -1.0"
 				}
 			]
 		},

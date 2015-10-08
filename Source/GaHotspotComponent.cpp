@@ -103,8 +103,8 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 			auto* ParentEntity = Hotspot->getParentEntity();
 			const MaVec2d Position = Hotspot->getPosition();
 			const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
-			const MaVec2d CornerA = Position - Hotspot->Size_;	
-			const MaVec2d CornerB = Position + Hotspot->Size_;				
+			const MaVec2d CornerA = Position - Hotspot->getSize();	
+			const MaVec2d CornerB = Position + Hotspot->getSize();				
 			if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
 				MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
 			{
@@ -136,27 +136,36 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 //////////////////////////////////////////////////////////////////////////
 // debugDraw
 void GaHotspotProcessor::debugDraw( const ScnComponentList& Components )
-{			
+{
 #if !PSY_PRODUCTION
-	ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
-	ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
-	if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
+	if( ImGui::Begin( "Game Debug" ) )
 	{
-		auto DrawList = ImGui::GetWindowDrawList();
-		DrawList->PushClipRectFullScreen();
+		bool HotspotDebugDraw = true;
+		ImGui::Checkbox( "Hotspot Debug Draw", &HotspotDebugDraw );
+		if( HotspotDebugDraw )
+		{
+			ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
+			ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
+			if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
+			{
+				auto DrawList = ImGui::GetWindowDrawList();
+				DrawList->PushClipRectFullScreen();
 
-		for( auto InComponent : Components )
-		{		
-			BcAssert( InComponent->isTypeOf< GaHotspotComponent >() );
-			auto* Component = static_cast< GaHotspotComponent* >( InComponent.get() );
+				for( auto InComponent : Components )
+				{		
+					BcAssert( InComponent->isTypeOf< GaHotspotComponent >() );
+					auto* Component = static_cast< GaHotspotComponent* >( InComponent.get() );
 
-			MaVec2d Position = Component->getPosition();
-			MaVec2d CornerA = Position;
-			MaVec2d CornerB = Position + Component->Size_;
-			DrawList->AddRect( CornerA, CornerB, 0xffffffff );
+					MaVec2d Position = Component->getPosition();
+					MaVec2d CornerA = Position;
+					MaVec2d CornerB = Position + Component->getSize();
+					DrawList->AddRect( CornerA, CornerB, 0xffffffff );
+				}
+
+				DrawList->PopClipRect();
+				ImGui::End();
+			}
 		}
-
-		DrawList->PopClipRect();
 		ImGui::End();
 	}
 #endif // !PSY_PRODUCTION
@@ -225,5 +234,15 @@ MaVec2d GaHotspotComponent::getPosition() const
 // getSize
 MaVec2d GaHotspotComponent::getSize() const
 {
-	return Size_;
+	MaVec2d Size( Size_ );
+	OsClient* Client = OsCore::pImpl()->getClient( 0 );
+	if( Size.x() < 0.0f )
+	{
+		Size.x( Client->getWidth() / -Size.x() );
+	}
+	if( Size.y() < 0.0f )
+	{
+		Size.y( Client->getHeight() / -Size.y() );
+	}
+	return Size;
 }

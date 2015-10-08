@@ -61,9 +61,13 @@ public:
 private:
 	friend class GaHotspotProcessor;
 
+	/// ID to send to event.
 	BcU32 ID_;
+	/// Layer of hotspot. -ve = further back (process late), +ve = further forward (process early)
 	BcS32 Layer_;
+	/// Position of hotspot.
 	MaVec2d Position_;
+	/// Size of hotspot. If -ve, then dimension is divisor on screen size, so -1,-1 = screen size.
 	MaVec2d Size_;
 	
 };

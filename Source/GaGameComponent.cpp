@@ -61,7 +61,7 @@ void GaGameProcessor::shutdown()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// drawMenus
+// update
 void GaGameProcessor::update( const ScnComponentList& Components )
 {
 	BcAssert( Components.size() <= 1 );
@@ -72,131 +72,10 @@ void GaGameProcessor::update( const ScnComponentList& Components )
 		BcAssert( InComponent->isTypeOf< GaGameComponent >() );
 		auto* Component = static_cast< GaGameComponent* >( InComponent.get() );
 
-		// Handle game state specific stuff.
-		switch( Component->GameState_ )
-		{
-		case GaGameComponent::GameState::IDLE:
-			onIdle( Component, Tick );
-			break;
-		case GaGameComponent::GameState::BUILD_PHASE:
-			onBuildPhase( Component, Tick );
-			break;
-		case GaGameComponent::GameState::DEFEND_PHASE:
-			onDefendPhase( Component, Tick );
-			break;
-		case GaGameComponent::GameState::GAME_OVER:
-			break;
-		}
-
-#if !PSY_PRODUCTION
-		if( ImGui::Begin( "Game Debug" ) )
-		{
-			ImGui::Text( "Game timer: %f", Component->GameTimer_ );
-			ImGui::Text( "Game state: %u", Component->GameState_ );
-			if( ImGui::Button( "Back to Main Menu" ) )
-			{
-				ScnEntitySpawnParams SpawnParams( 
-						BcName::INVALID, "menus", "MainMenu",
-						MaMat4d(), Component->getParentEntity()->getParentEntity() );
-				SpawnParams.OnSpawn_ = [ Component ]( ScnEntity* Entity )
-					{
-						ScnCore::pImpl()->removeEntity( Component->getParentEntity() );
-					};
-
-				ScnCore::pImpl()->spawnEntity( SpawnParams );
-
-			}
-			ImGui::Separator();
-			ImGui::End();
-		}
-#endif
+		Component->update( Tick );
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-// advanceGameTimer
-void GaGameProcessor::advanceGameTimer( GaGameComponent* Component, BcF32 Tick )
-{
-	Component->GameTimer_ += Tick;
-
-	const BcF32 LevelGameTimer = std::fmodf( Component->GameTimer_, Component->GamePhaseTime_ );
-	const BcF32 HalfGamePhaseTime = Component->GamePhaseTime_ * 0.5f;
-
-	// Swap between states at the half way/wrap points.
-	if( Component->GameState_ == GaGameComponent::GameState::BUILD_PHASE &&
-		LevelGameTimer > HalfGamePhaseTime )
-	{
-		Component->setGameState( GaGameComponent::GameState::DEFEND_PHASE );
-		Component->setInputState( GaGameComponent::InputState::IDLE );
-	}
-	else if( Component->GameState_ == GaGameComponent::GameState::DEFEND_PHASE &&
-		LevelGameTimer < HalfGamePhaseTime )
-	{
-		Component->setGameState( GaGameComponent::GameState::BUILD_PHASE );
-		Component->setInputState( GaGameComponent::InputState::IDLE );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onIdle
-void GaGameProcessor::onIdle( GaGameComponent* Component, BcF32 Tick )
-{
-	Component->setGameState( GaGameComponent::GameState::BUILD_PHASE );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onBuildPhase
-void GaGameProcessor::onBuildPhase( GaGameComponent* Component, BcF32 Tick )
-{
-	advanceGameTimer( Component, Tick );
-
-	// TODO BUILD MENU.
-#if !PSY_PRODUCTION
-		if( ImGui::Begin( "Game Debug" ) )
-		{
-			if( Component->InputState_ == GaGameComponent::InputState::IDLE )
-			{
-				for( auto StructureEntity : Component->StructureTemplates_ )
-				{
-					auto* StructureComponent = StructureEntity->getComponentByType< GaStructureComponent >();
-					std::string ButtonText = std::string( "Build " ) + (*StructureComponent->getName());
-					if( ImGui::Button( ButtonText.c_str() ) )
-					{
-						Component->BuildStructure_ = StructureComponent;
-						Component->setInputState( GaGameComponent::InputState::BUILD_BUILDING );
-					}
-				}
-			}
-			else if( Component->InputState_ == GaGameComponent::InputState::BUILD_BUILDING )
-			{
-				ImGui::Text( "Selected to build: %s", (*Component->BuildStructure_->getName()).c_str() );
-				if( ImGui::Button( "Cancel build" ) )
-				{
-					Component->BuildStructure_ = nullptr;
-					Component->setInputState( GaGameComponent::InputState::IDLE );
-				}
-			}
-
-			ImGui::Separator();
-			ImGui::End();
-		}
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onDefendPhase
-void GaGameProcessor::onDefendPhase( GaGameComponent* Component, BcF32 Tick )
-{
-	advanceGameTimer( Component, Tick );
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onGameOver
-void GaGameProcessor::onGameOver( GaGameComponent* Component, BcF32 Tick )
-{
-
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -239,6 +118,37 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
 
+	// Subscribe to hotspot for hover.
+	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< GaHotspotEvent >();
+
+			if( BuildStructure_ )
+			{
+				BuildStructure_->getParentEntity()->setLocalPosition( 
+					MaVec3d( Event.Position_, 0.0f ) );
+			}
+			return evtRET_PASS;
+		} );
+
+	// Subscribe to hotspot for pressed.
+	Parent->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< GaHotspotEvent >();
+
+			if( BuildStructure_ )
+			{
+				BuildStructure_->getParentEntity()->setLocalPosition( 
+					MaVec3d( Event.Position_, 0.0f ) );
+				BuildStructure_->setActive( BcTrue );
+				BuildStructure_ = nullptr;
+				setInputState( InputState::IDLE );
+			}
+			return evtRET_PASS;
+		} );
+
 	// Spawn tentacle things.
 	MaMat4d TransformA;
 	MaMat4d TransformB;
@@ -280,5 +190,147 @@ void GaGameComponent::setGameState( GameState GameState )
 void GaGameComponent::setInputState( InputState InputState )
 {
 	PSY_LOG( "Changing input state from %u -> %u", InputState_, InputState );
+
+	if( BuildStructure_ )
+	{
+		getParentEntity()->detach( BuildStructure_->getParentEntity() );
+		BuildStructure_ = nullptr;
+	}
+
 	InputState_ = InputState;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+void GaGameComponent::update( BcF32 Tick )
+{
+	// Handle game state specific stuff.
+	switch( GameState_ )
+	{
+	case GameState::IDLE:
+		onIdle( Tick );
+		break;
+	case GameState::BUILD_PHASE:
+		onBuildPhase( Tick );
+		break;
+	case GameState::DEFEND_PHASE:
+		onDefendPhase( Tick );
+		break;
+	case GameState::GAME_OVER:
+		break;
+	}
+
+#if !PSY_PRODUCTION
+	if( ImGui::Begin( "Game Debug" ) )
+	{
+		ImGui::Text( "Game timer: %f", GameTimer_ );
+		ImGui::Text( "Game state: %u", GameState_ );
+		if( ImGui::Button( "Back to Main Menu" ) )
+		{
+			ScnEntitySpawnParams SpawnParams( 
+					BcName::INVALID, "menus", "MainMenu",
+					MaMat4d(), getParentEntity()->getParentEntity() );
+			SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Entity )
+				{
+					ScnCore::pImpl()->removeEntity( getParentEntity() );
+				};
+
+			ScnCore::pImpl()->spawnEntity( SpawnParams );
+
+		}
+		ImGui::Separator();
+		ImGui::End();
+	}
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// advanceGameTimer
+void GaGameComponent::advanceGameTimer( BcF32 Tick )
+{
+	GameTimer_ += Tick;
+
+	const BcF32 LevelGameTimer = std::fmodf( GameTimer_, GamePhaseTime_ );
+	const BcF32 HalfGamePhaseTime = GamePhaseTime_ * 0.5f;
+
+	// Swap between states at the half way/wrap points.
+	if( GameState_ == GameState::BUILD_PHASE &&
+		LevelGameTimer > HalfGamePhaseTime )
+	{
+		setGameState( GameState::DEFEND_PHASE );
+		setInputState( InputState::IDLE );
+	}
+	else if( GameState_ == GameState::DEFEND_PHASE &&
+		LevelGameTimer < HalfGamePhaseTime )
+	{
+		setGameState( GameState::BUILD_PHASE );
+		setInputState( InputState::IDLE );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onIdle
+void GaGameComponent::onIdle( BcF32 Tick )
+{
+	setGameState( GameState::BUILD_PHASE );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onBuildPhase
+void GaGameComponent::onBuildPhase( BcF32 Tick )
+{
+	advanceGameTimer( Tick );
+
+	// TODO BUILD MENU.
+#if !PSY_PRODUCTION
+		if( ImGui::Begin( "Game Debug" ) )
+		{
+			if( InputState_ == InputState::IDLE )
+			{
+				for( auto StructureEntity : StructureTemplates_ )
+				{
+					auto* StructureComponent = StructureEntity->getComponentByType< GaStructureComponent >();
+					std::string ButtonText = std::string( "Build " ) + (*StructureComponent->getName());
+					if( ImGui::Button( ButtonText.c_str() ) )
+					{
+						// Set input state (clears selected already)
+						setInputState( InputState::BUILD_BUILDING );
+
+						// Setup new structure.
+						auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams(
+							StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() ) );
+						BcAssert( SpawnedEntity );
+						BuildStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
+					}
+				}
+			}
+			else if( InputState_ == InputState::BUILD_BUILDING )
+			{
+				ImGui::Text( "Selected to build: %s", (*BuildStructure_->getName()).c_str() );
+				if( ImGui::Button( "Cancel build" ) )
+				{
+					setInputState( InputState::IDLE );
+					BuildStructure_ = nullptr;
+				}
+			}
+
+			ImGui::Separator();
+			ImGui::End();
+		}
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDefendPhase
+void GaGameComponent::onDefendPhase( BcF32 Tick )
+{
+	advanceGameTimer( Tick );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onGameOver
+void GaGameComponent::onGameOver( BcF32 Tick )
+{
+
 }

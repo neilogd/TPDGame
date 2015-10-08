@@ -10,6 +10,7 @@
 #include "System/Scene/ScnEntity.h"
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/Rendering/ScnFont.h"
+#include "System/Scene/Rendering/ScnSpriteComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -108,6 +109,8 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 	BcAssert( Canvas_ );
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
+
+	setActive( Active_ );
 	
 	Super::onAttach( Parent );
 }
@@ -116,6 +119,20 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaStructureComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	setActive( BcFalse );
 	Parent->unsubscribeAll( this );
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setActive
+void GaStructureComponent::setActive( BcBool Active )
+{
+	Active_ = Active;
+
+	auto Sprite = getComponentByType< ScnSpriteComponent >();
+	if( Sprite )
+	{
+		Sprite->setColour( Active_ ? RsColour::GREEN : RsColour::RED );
+	}
 }

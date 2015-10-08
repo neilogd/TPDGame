@@ -39,6 +39,8 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
+	void setActive( BcBool Active );
+
 private:
 	friend class GaStructureProcessor;
 

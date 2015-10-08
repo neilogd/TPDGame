@@ -20,11 +20,6 @@ public:
 	void update( const ScnComponentList& Components );
 
 private:
-	void advanceGameTimer( class GaGameComponent* Component, BcF32 Tick );
-	void onIdle( class GaGameComponent* Component, BcF32 Tick );
-	void onBuildPhase( class GaGameComponent* Component, BcF32 Tick );
-	void onDefendPhase( class GaGameComponent* Component, BcF32 Tick );
-	void onGameOver( class GaGameComponent* Component, BcF32 Tick );
 	
 };
 
@@ -42,8 +37,14 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	
 private:
+	void update( BcF32 Tick );
+	void advanceGameTimer( BcF32 Tick );
+	void onIdle( BcF32 Tick );
+	void onBuildPhase( BcF32 Tick );
+	void onDefendPhase( BcF32 Tick );
+	void onGameOver( BcF32 Tick );
+
 	friend class GaGameProcessor;
 
 	BcU32 Level_ = 0;
