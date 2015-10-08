@@ -103,7 +103,7 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 			auto* ParentEntity = Hotspot->getParentEntity();
 			const MaVec2d Position = Hotspot->getPosition();
 			const MaVec2d MousePosition( Event.MouseX_, Event.MouseY_ );
-			const MaVec2d CornerA = Position - Hotspot->getSize();	
+			const MaVec2d CornerA = Position;	
 			const MaVec2d CornerB = Position + Hotspot->getSize();				
 			if( MousePosition.x() >= CornerA.x() && MousePosition.x() <= CornerB.x() &&
 				MousePosition.y() >= CornerA.y() && MousePosition.y() <= CornerB.y() )
@@ -112,6 +112,12 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 				OutEvent.ID_ = Hotspot->ID_;
 				OutEvent.Position_ = MousePosition;
 				OutEvent.RelativePosition_ = MousePosition - Position;
+				PSY_LOG( "Hotspot event %u: %f, %f (%f, %f)", 
+					OutEvent.ID_,
+					OutEvent.Position_.x(),
+					OutEvent.Position_.y(),
+					OutEvent.RelativePosition_.x(),
+					OutEvent.RelativePosition_.y() );
 				if( ID == osEVT_INPUT_MOUSEDOWN )
 				{
 					ParentEntity->publish( gaEVT_HOTSPOT_PRESSED, OutEvent );

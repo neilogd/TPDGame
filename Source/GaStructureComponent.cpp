@@ -165,6 +165,8 @@ void GaStructureComponent::setupTopology()
 
 	// Grab absolute position.
 	AbsolutePosition_ = getParentEntity()->getWorldPosition().xy();
+
+	PSY_LOG( "GaStructureComponent::setupTopology: %f, %f", AbsolutePosition_.x(), AbsolutePosition_.y() );
 }
 
 //////////////////////////////////////////////////////////////////////////

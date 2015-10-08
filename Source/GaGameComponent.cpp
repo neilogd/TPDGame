@@ -126,7 +126,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 			if( SelectedStructure_ )
 			{
-				SelectedStructure_->getParentEntity()->setLocalPosition( 
+				SelectedStructure_->getParentEntity()->setWorldPosition( 
 					MaVec3d( Event.Position_, 0.0f ) );
 			}
 			return evtRET_PASS;
@@ -140,7 +140,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 			if( SelectedStructure_ )
 			{
-				SelectedStructure_->getParentEntity()->setLocalPosition( 
+				SelectedStructure_->getParentEntity()->setWorldPosition( 
 					MaVec3d( Event.Position_, 0.0f ) );
 				buildStructure( SelectedStructure_ );
 				SelectedStructure_ = nullptr;
