@@ -140,7 +140,7 @@ void GaHotspotProcessor::debugDraw( const ScnComponentList& Components )
 #if !PSY_PRODUCTION
 	if( ImGui::Begin( "Game Debug" ) )
 	{
-		bool HotspotDebugDraw = true;
+		static bool HotspotDebugDraw = true;
 		ImGui::Checkbox( "Hotspot Debug Draw", &HotspotDebugDraw );
 		if( HotspotDebugDraw )
 		{

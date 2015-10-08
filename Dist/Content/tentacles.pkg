@@ -10,7 +10,24 @@
 				},
 
 				{
-					"type" : "GaTentacleComponent"
+					"type" : "GaTentacleComponent",
+					"movespeed" : 64.0
+				}
+			]
+		},
+
+		{
+			"name"		:		"TentacleEntity_1",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaTentacleComponent",
+					"movespeed" : 128.0
 				}
 			]
 		}

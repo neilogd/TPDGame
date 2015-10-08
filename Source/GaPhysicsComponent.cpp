@@ -112,6 +112,16 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 #if !PSY_PRODUCTION
 	if ( ImGui::Begin( "Game Debug" ) )
 	{
+		size_t NoofPointMasses = 0;
+		size_t NoofConstraints = 0;
+		for( auto InComponent : Components )
+		{
+			BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
+			auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
+			NoofPointMasses += Component->PointMasses_.size();
+			NoofConstraints += Component->Constraints_.size();
+		}
+
 		BcF32 InvTick = 1.0f / TickRate_;
 		if( ImGui::InputFloat( "Physics Tick rate (hz)", &InvTick ) )
 		{
@@ -130,6 +140,8 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 			}
 		}
 
+		ImGui::Text( "Point mases: %u",  NoofPointMasses );
+		ImGui::Text( "Constraints: %u",  NoofConstraints );
 		ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
 		ImGui::Separator();
 		ImGui::End();

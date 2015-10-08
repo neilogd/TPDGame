@@ -26,7 +26,8 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // GaTentacleComponent
 class GaTentacleComponent:
-	public ScnComponent
+	public ScnComponent,
+	public ReIObjectNotify
 {
 public:
 	REFLECTION_DECLARE_DERIVED( GaTentacleComponent, ScnComponent );
@@ -41,12 +42,15 @@ public:
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-
+	
+	void onObjectDeleted( class ReObject* Object ) override;
 	
 private:
 	friend class GaTentacleProcessor;
 
+	BcF32 MoveSpeed_ = 64.0f;
+
 	// TODO: Replace with something more predictable, like a spline.
-	MaVec2d TargetPosition_;
+	class GaStructureComponent* TargetStructure_ = nullptr;
 	
 };

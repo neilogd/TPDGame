@@ -162,7 +162,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 			TransformA, Parent ) );
 	ScnCore::pImpl()->spawnEntity( 
 		ScnEntitySpawnParams( 
-			BcName::INVALID, "tentacles", "TentacleEntity_0",
+			BcName::INVALID, "tentacles", "TentacleEntity_1",
 			TransformB, Parent ) );
 
 	
@@ -182,6 +182,23 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 const std::vector< class GaStructureComponent* >& GaGameComponent::getStructures() const
 {
 	return Structures_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildStructure
+void GaGameComponent::buildStructure( GaStructureComponent* Structure )
+{
+	Structures_.push_back( Structure );
+	Structure->setActive( BcTrue );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyStructure
+void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
+{
+	Structure->setActive( BcFalse );
+	Structures_.erase( std::find( Structures_.begin(), Structures_.end(), Structure ) );
+	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -340,21 +357,4 @@ void GaGameComponent::onDefendPhase( BcF32 Tick )
 void GaGameComponent::onGameOver( BcF32 Tick )
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// buildStructure
-void GaGameComponent::buildStructure( GaStructureComponent* Structure )
-{
-	Structures_.push_back( Structure );
-	Structure->setActive( BcTrue );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// destroyStructure
-void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
-{
-	Structure->setActive( BcFalse );
-	std::remove( Structures_.begin(), Structures_.end(), Structure );
-	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
 }

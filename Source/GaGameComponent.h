@@ -39,6 +39,10 @@ public:
 
 	const std::vector< class GaStructureComponent* >& getStructures() const;
 
+	void buildStructure( class GaStructureComponent* Structure );
+	void destroyStructure( class GaStructureComponent* Structure );
+
+
 private:
 	void update( BcF32 Tick );
 	void advanceGameTimer( BcF32 Tick );
@@ -46,9 +50,6 @@ private:
 	void onBuildPhase( BcF32 Tick );
 	void onDefendPhase( BcF32 Tick );
 	void onGameOver( BcF32 Tick );
-
-	void buildStructure( class GaStructureComponent* Structure );
-	void destroyStructure( class GaStructureComponent* Structure );
 
 	friend class GaGameProcessor;
 

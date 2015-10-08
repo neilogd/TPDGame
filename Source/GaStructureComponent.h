@@ -36,6 +36,8 @@ public:
 	GaStructureComponent();
 	virtual ~GaStructureComponent();
 
+	void setupTopology();
+
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
@@ -46,7 +48,12 @@ private:
 
 	BcU32 Level_ = 0;
 	BcBool Active_ = BcFalse;
+
+	BcF32 Timer_ = 0.0f;
+
+	MaVec2d AbsolutePosition_;
  
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
+	class GaPhysicsComponent* Physics_ = nullptr;
 };

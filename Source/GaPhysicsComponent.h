@@ -96,6 +96,9 @@ public:
 	const MaVec2d& getPointMassPosition( size_t Idx ) const { return PointMasses_[ Idx ].CurrPosition_; }
 	void setPointMassPosition( size_t Idx, const MaVec2d& Position ) { PointMasses_[ Idx ].CurrPosition_ = Position; }
 
+	size_t getNoofPointMasses() const { return PointMasses_.size(); }
+	size_t getNoofConstraints() const { return Constraints_.size(); }
+
 private:
 	friend class GaPhysicsProcessor;
 
