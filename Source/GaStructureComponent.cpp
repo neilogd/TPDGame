@@ -89,8 +89,7 @@ void GaStructureProcessor::update( const ScnComponentList& Components )
 #endif
 			Component->Timer_ += Tick;
 
-			// Offset the centre bit to give some wobbly goodness.
-			MaVec2d Offset( MaVec2d( BcCos( Component->Timer_ ), -BcSin( Component->Timer_ * 4.0f ) ) * 8.0f );
+			MaVec2d Offset( MaVec2d( BcCos( Component->Timer_ ), -BcSin( Component->Timer_ * 4.0f ) ) * 1.0f );
 			Component->Physics_->setPointMassPosition( 0, Component->AbsolutePosition_ + Offset );
 		}	
 	}
@@ -105,6 +104,7 @@ void GaStructureComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Level_", &GaStructureComponent::Level_, bcRFF_IMPORTER ),
+		new ReField( "Floating_", &GaStructureComponent::Floating_, bcRFF_IMPORTER ),
 		new ReField( "Active_", &GaStructureComponent::Active_, bcRFF_IMPORTER ),
 	};
 

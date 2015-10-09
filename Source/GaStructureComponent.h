@@ -47,6 +47,8 @@ private:
 	friend class GaStructureProcessor;
 
 	BcU32 Level_ = 0;
+	BcBool Floating_ = BcFalse;
+
 	BcBool Active_ = BcFalse;
 
 	BcF32 Timer_ = 0.0f;

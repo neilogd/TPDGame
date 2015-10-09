@@ -69,6 +69,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 		// Grab game component.
 		auto FirstComponent = Components[0];
 		auto Game = static_cast< GaGameComponent* >( FirstComponent.get() )->getComponentAnyParentByType< GaGameComponent >();
+		BcAssert( Game );
 		const auto& Structures = Game->getStructures();
 	
 		// Update each tentacle.
@@ -79,55 +80,31 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			auto* Component = static_cast< GaTentacleComponent* >( InComponent.get() );
 			auto* Physics = Component->getParentEntity()->getComponentByType< GaPhysicsComponent >();
 
-			auto ComponentPos = Component->getParentEntity()->getWorldPosition().xy();
-			GaStructureComponent* NearestStructure = nullptr;
-			auto ShortestDistance = std::numeric_limits< BcF32 >::max();
-
-			// No target? Try find one.
-			if( Component->TargetStructure_ == nullptr )
-			{
-				// Attack something.
-				for( auto Structure : Structures )
-				{
-					auto TargetPos = Structure->getParentEntity()->getWorldPosition().xy();
-					auto Distance = ( TargetPos - ComponentPos ).magnitude();
-					if( Distance < ShortestDistance )
-					{
-						ShortestDistance = Distance;
-						NearestStructure = Structure;
-					}
-				}
-					
-				if( NearestStructure != nullptr )
-				{
-					Component->TargetStructure_ = NearestStructure;
-					NearestStructure->addNotifier( Component );
-				}
-			}
-
 			// If we have a target, move closer.
 			if( Component->TargetStructure_ != nullptr )
 			{
-				BcF32 MoveSpeed = Component->MoveSpeed_ * Tick;
+				Component->TargetPosition_ = Component->TargetStructure_->getParentEntity()->getWorldPosition().xy();
+			}
 
-				auto ComponentPos = Component->getParentEntity()->getWorldPosition().xy();
-				auto TargetPos = Component->TargetStructure_->getParentEntity()->getWorldPosition().xy();
-				auto TargetVec = TargetPos - ComponentPos;
-				if( TargetVec.magnitude() < 32.0f )
+			const BcF32 MoveSpeed = Component->MoveSpeed_ * Tick;
+			auto ComponentPos = Component->getParentEntity()->getWorldPosition().xy();
+			auto TargetVec = Component->TargetPosition_ - ComponentPos;
+			if( TargetVec.magnitude() < 32.0f )
+			{
+				if( Component->TargetStructure_ )
 				{
 					Game->destroyStructure( Component->TargetStructure_ );
-					Component->TargetStructure_ = nullptr;
+					Component->targetHome();
 				}
-
-				if( TargetVec.magnitude() > MoveSpeed )
-				{
-					TargetVec = TargetVec.normal() * MoveSpeed;
-				}
-
-				ComponentPos += TargetVec;
-				Component->getParentEntity()->setLocalPosition( MaVec3d( ComponentPos, 0.0f ) );
-
 			}
+
+			if( TargetVec.magnitude() > MoveSpeed )
+			{
+				TargetVec = TargetVec.normal() * MoveSpeed;
+			}
+
+			ComponentPos += TargetVec;
+			Component->getParentEntity()->setLocalPosition( MaVec3d( ComponentPos, 0.0f ) );
 			
 			// Set first point mass to world position. Should be a soft constraint to make it move smoothly.
 			Physics->setPointMassPosition( 0, Component->getParentEntity()->getWorldPosition().xy() );
@@ -148,6 +125,8 @@ void GaTentacleComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "MoveSpeed_", &GaTentacleComponent::MoveSpeed_, bcRFF_IMPORTER ),
+		new ReField( "HeadDamping_", &GaTentacleComponent::HeadDamping_, bcRFF_IMPORTER ),
+		new ReField( "HeadConstraintRigidity_", &GaTentacleComponent::HeadConstraintRigidity_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< GaTentacleComponent, Super >( Fields )
@@ -180,9 +159,9 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 
 	// Head point used to nagivate.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
 
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 0.5f, 1.0f / 1.0f ) );
+	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), HeadDamping_, 1.0f / 1.0f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 1, 3, -1.0f, 1.0f ) );
 	size_t PointOffset = 2;
@@ -240,7 +219,7 @@ void GaTentacleComponent::setupDiamondTopology( MaVec2d RootPosition, BcF32 Widt
 
 	// Head point for moving it round.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
 
 	// Head point used to nagivate.
 	size_t PointOffset = 1;
@@ -303,9 +282,9 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 
 	// Head point used to nagivate.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, 0.5f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
 
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 0.1f, 1.0f / 1.0f ) );
+	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), HeadDamping_, 1.0f / 1.0f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
 	size_t PointOffset = 2;
 	size_t Distance = 8;
@@ -345,10 +324,89 @@ void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addPhysicsNoise
+void GaTentacleComponent::addPhysicsNoise()
+{
+	// Add some tiny offsets to all the point masses.
+	// This is to force there to be no cases where the structure can't
+	// move to the side. Should solve any folding in errors upon initial spawning
+	// and such.
+	const BcF32 TinyMultiplier = 0.001f;
+	const BcF32 Increment = 0.0001f;
+	BcF32 Counter = 0.0f;
+	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
+	auto NoofPointMasses = Physics->getNoofPointMasses();
+	for( size_t Idx = 0; Idx < NoofPointMasses; ++Idx )
+	{
+		MaVec2d Offset( BcCos( Counter ), BcSin( Counter ) * TinyMultiplier );
+		Physics->setPointMassPosition( Idx, Physics->getPointMassPosition( Idx ) + Offset );
+		Counter += Increment;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// targetStructure
+void GaTentacleComponent::targetStructure()
+{
+	auto ComponentPos = getParentEntity()->getWorldPosition().xy();
+	GaStructureComponent* NearestStructure = nullptr;
+	auto ShortestDistance = std::numeric_limits< BcF32 >::max();
+	const auto& Structures = Game_->getStructures();
+	for( auto Structure : Structures )
+	{
+		auto TargetPos = Structure->getParentEntity()->getWorldPosition().xy();
+		auto Distance = ( TargetPos - ComponentPos ).magnitude();
+		if( Distance < ShortestDistance )
+		{
+			ShortestDistance = Distance;
+			NearestStructure = Structure;
+		}
+	}
+
+	if( NearestStructure != nullptr )
+	{
+		NearestStructure->addNotifier( this );
+		TargetStructure_ = NearestStructure;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// targetHome
+void GaTentacleComponent::targetHome()
+{
+	// Get last pos.
+	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
+	BcAssert( Physics );
+	
+	TargetPosition_ = Physics->getPointMassPosition( Physics->getNoofPointMasses() - 1 ) - MaVec2d( 0.0f, 256.0f );
+	TargetStructure_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttach
 void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	Game_ = getComponentAnyParentByType< GaGameComponent >();
+	BcAssert( Game_ );
+
+	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_BUILD_PHASE, this, 
+		[ this ]( EvtID, const EvtBaseEvent & Event )
+		{
+			targetHome();
+			return evtRET_PASS;
+		} );
+
+	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_DEFEND_PHASE, this,
+		[ this ]( EvtID, const EvtBaseEvent & Event )
+		{
+			targetStructure();
+			return evtRET_PASS;
+		} );
+
 	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
+	addPhysicsNoise();
+	targetHome();
+
 	Super::onAttach( Parent );
 }
 
@@ -356,6 +414,10 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	// TODO: Recursive unsubscribe?
+	// FIND OUT WHY THIS CRASHES ON EXIT.
+	//getParentEntity()->getParentEntity()->unsubscribeAll( this );
+
 	getParentEntity()->unsubscribeAll( this );
 	Super::onDetach( Parent );
 }

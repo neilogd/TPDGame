@@ -8,7 +8,7 @@
 // GaHotspotEvents
 enum GaHotspotEvents
 {
-	gaEVT_HOTSPOT_PRESSED,
+	gaEVT_HOTSPOT_PRESSED = EVT_MAKE_ID( 'G', 'a', 'H' ),
 	gaEVT_HOTSPOT_HOVER,
 };
 

@@ -188,6 +188,7 @@ const std::vector< class GaStructureComponent* >& GaGameComponent::getStructures
 // buildStructure
 void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 {
+	BcAssert( Structure );
 	Structures_.push_back( Structure );
 	Structure->setActive( BcTrue );
 }
@@ -196,6 +197,7 @@ void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 // destroyStructure
 void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 {
+	BcAssert( Structure );
 	Structure->setActive( BcFalse );
 	Structures_.erase( std::find( Structures_.begin(), Structures_.end(), Structure ) );
 	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
@@ -205,8 +207,21 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 // setGameState
 void GaGameComponent::setGameState( GameState GameState )
 {
-	PSY_LOG( "Changing game state from %u -> %u", GameState_, GameState );
-	GameState_ = GameState;
+	if( GameState_ != GameState )
+	{
+		PSY_LOG( "Changing game state from %u -> %u", GameState_, GameState );
+		GameState_ = GameState;
+
+		switch( GameState_ )
+		{
+		case GameState::BUILD_PHASE:
+			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent() );
+			break;
+		case GameState::DEFEND_PHASE:
+			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent() );
+			break;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

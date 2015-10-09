@@ -38,7 +38,10 @@ public:
 	void setupComplexTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
 	void setupDiamondTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
 	void setupSimpleTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
+	void addPhysicsNoise();
 
+	void targetStructure();
+	void targetHome();
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
@@ -49,8 +52,12 @@ private:
 	friend class GaTentacleProcessor;
 
 	BcF32 MoveSpeed_ = 64.0f;
+	BcF32 HeadDamping_ = 0.5f;
+	BcF32 HeadConstraintRigidity_ = 0.5f;
+
+	class GaGameComponent* Game_ = nullptr;
 
 	// TODO: Replace with something more predictable, like a spline.
 	class GaStructureComponent* TargetStructure_ = nullptr;
-	
+	MaVec2d TargetPosition_;
 };
