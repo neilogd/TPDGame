@@ -1,9 +1,17 @@
 #pragma once
 
-#include "GaStructureBehaviour.h"
-
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
+
+//////////////////////////////////////////////////////////////////////////
+// GaStructureType
+enum class GaStructureType
+{
+	TURRET,
+	RESOURCE,
+	POTATO,
+	MINE
+};
 
 //////////////////////////////////////////////////////////////////////////
 // GaStructureProcessor
@@ -43,6 +51,8 @@ public:
 
 	void setActive( BcBool Active );
 
+	void update( BcF32 Tick );
+
 private:
 	friend class GaStructureProcessor;
 
@@ -51,11 +61,16 @@ private:
 
 	BcBool Active_ = BcFalse;
 
-	BcF32 Timer_ = 0.0f;
+	GaStructureType StructureType_ = GaStructureType::TURRET;
+	ScnEntity* TemplateProjectile_ = nullptr;
+	BcF32 FireRate_ = 1.0f;
 
+	BcF32 Timer_ = 0.0f;
 	MaVec2d AbsolutePosition_;
  
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
 	class GaPhysicsComponent* Physics_ = nullptr;
+	class GaGameComponent* Game_ = nullptr;
+
 };

@@ -50,6 +50,7 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	const std::vector< class GaStructureComponent* >& getStructures() const;
+	const std::vector< class GaTentacleComponent* >& getTentacles() const;
 
 	void buildStructure( class GaStructureComponent* Structure );
 	void destroyStructure( class GaStructureComponent* Structure );
@@ -98,6 +99,7 @@ private:
 	BcF32 GameTimer_ = 0.0f;
 
 	std::vector< class GaStructureComponent* > Structures_;
+	std::vector< class GaTentacleComponent* > Tentacles_;
 
 	// Input state specific.
 	class GaStructureComponent* SelectedStructure_ = nullptr;

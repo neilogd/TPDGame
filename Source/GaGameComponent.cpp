@@ -1,6 +1,7 @@
 #include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaStructureComponent.h"
+#include "GaTentacleComponent.h"
 #include "GaPositionUtility.h"
 
 
@@ -156,14 +157,25 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	auto TentacleB = GaPositionUtility::GetScreenPosition( MaVec2d( 128.0f, 128.0f ), MaVec2d( 32.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::RIGHT );
 	TransformA.translation( MaVec3d( TentacleA, 0.0f ) );
 	TransformB.translation( MaVec3d( TentacleB, 0.0f ) );
-	ScnCore::pImpl()->spawnEntity( 
-		ScnEntitySpawnParams( 
+
+	auto SpawnParamsA = ScnEntitySpawnParams( 
 			BcName::INVALID, "tentacles", "TentacleEntity_0",
-			TransformA, Parent ) );
-	ScnCore::pImpl()->spawnEntity( 
-		ScnEntitySpawnParams( 
+			TransformA, Parent );
+	auto SpawnParamsB = ScnEntitySpawnParams( 
 			BcName::INVALID, "tentacles", "TentacleEntity_1",
-			TransformB, Parent ) );
+			TransformB, Parent );
+
+	SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
+		{
+			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+		};
+	SpawnParamsB.OnSpawn_ = [ this ]( ScnEntity* Parent )
+		{
+			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+		};
+
+	ScnCore::pImpl()->spawnEntity( SpawnParamsA );
+	ScnCore::pImpl()->spawnEntity( SpawnParamsB );
 
 	
 	Super::onAttach( Parent );
@@ -182,6 +194,13 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 const std::vector< class GaStructureComponent* >& GaGameComponent::getStructures() const
 {
 	return Structures_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTentacles
+const std::vector< class GaTentacleComponent* >& GaGameComponent::getTentacles() const
+{
+	return Tentacles_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,10 +233,10 @@ void GaGameComponent::setGameState( GameState GameState )
 
 		switch( GameState_ )
 		{
-		case GameState::BUILD_PHASE:
+		case GaGameComponent::GameState::BUILD_PHASE:
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent() );
 			break;
-		case GameState::DEFEND_PHASE:
+		case GaGameComponent::GameState::DEFEND_PHASE:
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent() );
 			break;
 		}

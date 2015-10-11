@@ -1,6 +1,9 @@
 #include "GaStructureComponent.h"
+#include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
+#include "GaProjectileComponent.h"
+#include "GaTentacleComponent.h"
 #include "GaPositionUtility.h"
 
 #include "System/Debug/DsCore.h"
@@ -70,28 +73,10 @@ void GaStructureProcessor::update( const ScnComponentList& Components )
 	{
 		BcAssert( InComponent->isTypeOf< GaStructureComponent >() );
 		auto* Component = static_cast< GaStructureComponent* >( InComponent.get() );
-
-		// If we have point masses, calculate position.
-		const size_t NoofPointMasses = Component->Physics_->getNoofPointMasses();
-		if( Component->Physics_->getNoofPointMasses() > 0 )
+		if( Component->Active_ )
 		{
-#if 1
-			MaVec2d Centre( 0.0f, 0.0f );
-			for( size_t Idx = 1; Idx < NoofPointMasses; ++Idx )
-			{
-				Centre += Component->Physics_->getPointMassPosition( Idx );
-			}
-			Centre /= static_cast< BcF32 >( NoofPointMasses - 1 );
-			Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
-#else
-			MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
-			Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
-#endif
-			Component->Timer_ += Tick;
-
-			MaVec2d Offset( MaVec2d( BcCos( Component->Timer_ ), -BcSin( Component->Timer_ * 4.0f ) ) * 1.0f );
-			Component->Physics_->setPointMassPosition( 0, Component->AbsolutePosition_ + Offset );
-		}	
+			Component->update( Tick );
+		}
 	}
 }
 
@@ -101,11 +86,23 @@ REFLECTION_DEFINE_DERIVED( GaStructureComponent );
 
 void GaStructureComponent::StaticRegisterClass()
 {
+	ReEnumConstant* StructureTypeEnumConstants[] = 
+	{
+		new ReEnumConstant( "TURRET", (BcU32)GaStructureType::TURRET ),
+		new ReEnumConstant( "RESOURCE", (BcU32)GaStructureType::RESOURCE ),
+		new ReEnumConstant( "POTATO", (BcU32)GaStructureType::POTATO ),
+		new ReEnumConstant( "MINE", (BcU32)GaStructureType::MINE )
+	};
+	ReRegisterEnum< GaStructureType >( StructureTypeEnumConstants );
+
 	ReField* Fields[] = 
 	{
 		new ReField( "Level_", &GaStructureComponent::Level_, bcRFF_IMPORTER ),
 		new ReField( "Floating_", &GaStructureComponent::Floating_, bcRFF_IMPORTER ),
 		new ReField( "Active_", &GaStructureComponent::Active_, bcRFF_IMPORTER ),
+		new ReField( "StructureType_", &GaStructureComponent::StructureType_, bcRFF_IMPORTER ),
+		new ReField( "TemplateProjectile_", &GaStructureComponent::TemplateProjectile_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "FireRate_", &GaStructureComponent::FireRate_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< GaStructureComponent, Super >( Fields )
@@ -180,6 +177,8 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 	BcAssert( Font_ );
 	Physics_ = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics_ );
+	Game_ = getParentEntity()->getComponentAnyParentByType< GaGameComponent >();
+	BcAssert( Game_ );
 
 	setActive( Active_ );
 	
@@ -210,5 +209,71 @@ void GaStructureComponent::setActive( BcBool Active )
 	if( Sprite )
 	{
 		Sprite->setColour( Active_ ? RsColour( 0.0f, 0.5f, 0.0f, 1.0f ) : RsColour( 0.5f, 0.0f, 0.0f, 1.0f ) );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+void GaStructureComponent::update( BcF32 Tick )
+{
+	// If we have point masses, calculate position.
+	const size_t NoofPointMasses = Physics_->getNoofPointMasses();
+	if( Physics_->getNoofPointMasses() > 0 )
+	{
+#if 1
+		MaVec2d Centre( 0.0f, 0.0f );
+		for( size_t Idx = 1; Idx < NoofPointMasses; ++Idx )
+		{
+			Centre += Physics_->getPointMassPosition( Idx );
+		}
+		Centre /= static_cast< BcF32 >( NoofPointMasses - 1 );
+		getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
+#else
+		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
+		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
+#endif
+		Timer_ += Tick;
+
+		MaVec2d Offset( MaVec2d( BcCos( Timer_ ), -BcSin( Timer_ * 4.0f ) ) * 1.0f );
+		Physics_->setPointMassPosition( 0, AbsolutePosition_ + Offset );
+	}	
+	
+	switch( StructureType_ )
+	{
+	case GaStructureType::TURRET:
+		if( Timer_ > FireRate_ )
+		{
+			Timer_ -= FireRate_;
+
+			// Find a tentacle.
+			const auto& Tentacles = Game_->getTentacles();
+			if( Tentacles.size() > 0 )
+			{
+				auto* Tentacle = Tentacles[ 0 ];
+
+				// Spawn a projectile.
+				if( TemplateProjectile_ )
+				{
+					auto Entity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams( 
+						BcName::INVALID, TemplateProjectile_,
+						getParentEntity()->getWorldMatrix(),
+						getParentEntity()->getParentEntity() ) );
+					auto Projectile = Entity->getComponentByType< GaProjectileComponent >();
+					Projectile->setTarget( Tentacle->getParentEntity() );
+				}
+			}
+
+
+		}
+		break;
+
+	case GaStructureType::RESOURCE:
+		break;
+
+	case GaStructureType::POTATO:
+		break;
+
+	case GaStructureType::MINE:
+		break;
 	}
 }

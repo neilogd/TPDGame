@@ -196,9 +196,9 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 	PointMasses[0].Acceleration_ = MaVec2d( 0.0f, 0.0f );
 
 	// Pin the end.
-	PointMasses[ PointMasses.size() - 2 ].InvMass_ = 0.0f;
+	//PointMasses[ PointMasses.size() - 2 ].InvMass_ = 0.0f;
 	PointMasses[ PointMasses.size() - 1 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 2 ].DampingFactor_ = 1.0f;
+	//PointMasses[ PointMasses.size() - 2 ].DampingFactor_ = 1.0f;
 	PointMasses[ PointMasses.size() - 1 ].DampingFactor_= 1.0f;
 
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
@@ -378,7 +378,7 @@ void GaTentacleComponent::targetHome()
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics );
 	
-	TargetPosition_ = Physics->getPointMassPosition( Physics->getNoofPointMasses() - 1 ) - MaVec2d( 0.0f, 256.0f );
+	TargetPosition_ = Physics->getPointMassPosition( Physics->getNoofPointMasses() - 1 ) + MaVec2d( 256.0f, 0.0f );
 	TargetStructure_ = nullptr;
 }
 

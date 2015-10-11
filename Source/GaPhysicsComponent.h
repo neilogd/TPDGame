@@ -13,15 +13,17 @@ struct GaPhysicsPointMass
 		CurrPosition_( 0.0f, 0.0f ),
 		Acceleration_( 0.0f, 0.0f ),
 		DampingFactor_( 0.0f ),
-		InvMass_( 0.0f )
+		InvMass_( 0.0f ),
+		MaxVelocity_( 0.0f )
 	{}
 
-	GaPhysicsPointMass( MaVec2d Position, BcF32 DampingFactor, BcF32 InvMass ):
+	GaPhysicsPointMass( MaVec2d Position, BcF32 DampingFactor, BcF32 InvMass, BcF32 MaxVelocity = 0.0f ):
 		PrevPosition_( Position ),
 		CurrPosition_( Position ),
 		Acceleration_( 0.0f, 0.0f ),
 		DampingFactor_( DampingFactor ),
-		InvMass_( InvMass )
+		InvMass_( InvMass ),
+		MaxVelocity_( MaxVelocity )
 	{}
 
 	MaVec2d PrevPosition_;
@@ -29,6 +31,7 @@ struct GaPhysicsPointMass
 	MaVec2d Acceleration_;
 	BcF32 DampingFactor_;
 	BcF32 InvMass_;
+	BcF32 MaxVelocity_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,6 +74,8 @@ public:
 	void updateSimulations( const ScnComponentList& Components );
 	void debugDraw( const ScnComponentList& Components );
 
+	BcF32 getTickRate() const { return TickRate_; }
+
 private:
 	BcF32 TickAccumulator_ = 0.0f;
 
@@ -95,6 +100,8 @@ public:
 
 	const MaVec2d& getPointMassPosition( size_t Idx ) const { return PointMasses_[ Idx ].CurrPosition_; }
 	void setPointMassPosition( size_t Idx, const MaVec2d& Position ) { PointMasses_[ Idx ].CurrPosition_ = Position; }
+
+	void setPointMassAcceleration( size_t Idx, const MaVec2d& Acceleration ) { PointMasses_[ Idx ].Acceleration_ = Acceleration; }
 
 	size_t getNoofPointMasses() const { return PointMasses_.size(); }
 	size_t getNoofConstraints() const { return Constraints_.size(); }

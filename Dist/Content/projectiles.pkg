@@ -1,0 +1,44 @@
+{
+	"resources" : [
+		{
+			"name"		:		"ProjectileEntity_0",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaProjectileComponent",
+					"name" : "GaProjectileComponent_0",
+
+					"damagedistance" : 32.0,
+					"maxspeed" : 1024.0,
+					"acceleration" : 4096.0,
+					"drag" : 0.025,
+					"mass" : 1.0
+				},
+
+				{
+					"type" : "ScnMaterialComponent",
+					"name" : "StructureMaterial",
+					"material" : "$(ScnMaterial:structures_data.material)",
+					"permutation" : "2d"
+				},
+
+				{
+					"type" : "ScnSpriteComponent",
+					"materialname" : "StructureMaterial",
+					"position" : "0.0, 0.0",
+					"size" : "8.0, 4.0",
+					"centre" : true,
+					"colour" : "1.0, 0.0, 0.0, 1.0",
+					"index" : 0,
+					"layer" : 0
+				}
+
+			]
+		}
+	]
+}

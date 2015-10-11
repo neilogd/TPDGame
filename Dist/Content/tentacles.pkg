@@ -13,7 +13,7 @@
 					"type" : "GaTentacleComponent",
 					"movespeed" : 64.0,
 					"headdamping" : 0.5,
-					"headconstraintrigidity" : 0.05
+					"headconstraintrigidity" : 0.25
 				}
 			]
 		},
@@ -31,7 +31,7 @@
 					"type" : "GaTentacleComponent",
 					"movespeed" : 128.0,
 					"headdamping" : 0.5,
-					"headconstraintrigidity" : 0.05
+					"headconstraintrigidity" : 0.25
 				}
 			]
 		}

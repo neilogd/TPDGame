@@ -11,7 +11,11 @@
 
 				{
 					"type" : "GaStructureComponent",
-					"name" : "GaStructureComponent_0"
+					"name" : "GaStructureComponent_0",
+
+					"structuretype" : "TURRET",
+					"templateprojectile" : "$(ScnEntity:projectiles.ProjectileEntity_0)",
+					"firerate" : 1.0
 				},
 
 				{
@@ -45,7 +49,9 @@
 
 				{
 					"type" : "GaStructureComponent",
-					"name" : "GaStructureComponent_1"
+					"name" : "GaStructureComponent_1",
+
+					"structuretype" : "RESOURCE"
 				},
 				{
 					"type" : "ScnMaterialComponent",
@@ -78,7 +84,9 @@
 
 				{
 					"type" : "GaStructureComponent",
-					"name" : "GaStructureComponent_2"
+					"name" : "GaStructureComponent_2",
+
+					"structuretype" : "POTATO"
 				},
 				{
 					"type" : "ScnMaterialComponent",
