@@ -4,6 +4,7 @@
 #include "GaTentacleComponent.h"
 #include "GaPositionUtility.h"
 
+#include "GaEvents.h"
 
 #include "System/Debug/DsCore.h"
 #include "System/Debug/DsImGui.h"
@@ -234,10 +235,11 @@ void GaGameComponent::setGameState( GameState GameState )
 		switch( GameState_ )
 		{
 		case GaGameComponent::GameState::BUILD_PHASE:
-			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent() );
+			Level_++;
+			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
 			break;
 		case GaGameComponent::GameState::DEFEND_PHASE:
-			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent() );
+			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
 			break;
 		}
 	}
@@ -283,6 +285,7 @@ void GaGameComponent::update( BcF32 Tick )
 	{
 		ImGui::Text( "Game timer: %f", GameTimer_ );
 		ImGui::Text( "Game state: %u", GameState_ );
+		ImGui::Text( "Game level: %u", Level_ );
 		if( ImGui::Button( "Back to Main Menu" ) )
 		{
 			ScnEntitySpawnParams SpawnParams( 

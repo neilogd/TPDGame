@@ -1,10 +1,11 @@
 #include "GaStructureComponent.h"
 #include "GaGameComponent.h"
-#include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaProjectileComponent.h"
 #include "GaTentacleComponent.h"
 #include "GaPositionUtility.h"
+
+#include "GaEvents.h"
 
 #include "System/Debug/DsCore.h"
 #include "System/Debug/DsImGui.h"

@@ -1,9 +1,9 @@
 #include "GaTentacleComponent.h"
 #include "GaGameComponent.h"
-#include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaStructureComponent.h"
-#include "GaProjectileComponent.h"
+
+#include "GaEvents.h"
 
 #include "System/SysKernel.h"
 

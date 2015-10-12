@@ -1,5 +1,7 @@
 #include "GaHotspotComponent.h"
 
+#include "GaEvents.h"
+
 #include "System/Debug/DsCore.h"
 #include "System/Debug/DsImGui.h"
 #include "System/Os/OsCore.h"

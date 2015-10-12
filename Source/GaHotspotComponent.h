@@ -4,21 +4,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Os/OsEvents.h"
 	
-////////////////////////////////////////////////////////////////////////////////
-// GaHotspotEvents
-enum GaHotspotEvents
-{
-	gaEVT_HOTSPOT_PRESSED = EVT_MAKE_ID( 'G', 'a', 'H' ),
-	gaEVT_HOTSPOT_HOVER,
-};
-
-struct GaHotspotEvent : EvtEvent< GaHotspotEvent >
-{
-	BcU32 ID_;
-	MaVec2d Position_;
-	MaVec2d RelativePosition_;
-};
-
 //////////////////////////////////////////////////////////////////////////
 // GaHotspotProcessor
 class GaHotspotProcessor:

@@ -3,18 +3,6 @@
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// GaGameEvents
-enum GaGameEvents
-{
-	gaEVT_GAME_BEGIN_BUILD_PHASE = EVT_MAKE_ID( 'G', 'a', 'G' ),
-	gaEVT_GAME_BEGIN_DEFEND_PHASE,
-};
-
-struct GaGameEvent : EvtEvent< GaGameEvent >
-{
-};
-
 //////////////////////////////////////////////////////////////////////////
 // GaGameProcessor
 class GaGameProcessor:
