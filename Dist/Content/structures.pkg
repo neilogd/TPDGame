@@ -15,7 +15,7 @@
 
 					"structuretype" : "TURRET",
 					"templateprojectile" : "$(ScnEntity:projectiles.ProjectileEntity_0)",
-					"firerate" : 1.0
+					"firerate" : 5.0
 				},
 
 				{

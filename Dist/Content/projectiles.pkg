@@ -14,7 +14,7 @@
 					"name" : "GaProjectileComponent_0",
 
 					"damagedistance" : 32.0,
-					"maxspeed" : 1024.0,
+					"maxspeed" : 64.0,
 					"acceleration" : 4096.0,
 					"drag" : 0.025,
 					"mass" : 1.0

@@ -181,6 +181,8 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 	BcAssert( Game_ );
 
 	setActive( Active_ );
+
+	Timer_ = FireRate_;
 	
 	Super::onAttach( Parent );
 }
@@ -232,38 +234,51 @@ void GaStructureComponent::update( BcF32 Tick )
 		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
 		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
 #endif
-		Timer_ += Tick;
-
-		MaVec2d Offset( MaVec2d( BcCos( Timer_ ), -BcSin( Timer_ * 4.0f ) ) * 1.0f );
-		Physics_->setPointMassPosition( 0, AbsolutePosition_ + Offset );
+		if( Timer_ < FireRate_ )
+		{
+			Timer_ += Tick;
+		}
 	}	
 	
 	switch( StructureType_ )
 	{
 	case GaStructureType::TURRET:
-		if( Timer_ > FireRate_ )
+		if( Timer_ >= FireRate_ )
 		{
-			Timer_ -= FireRate_;
-
 			// Find a tentacle.
 			const auto& Tentacles = Game_->getTentacles();
 			if( Tentacles.size() > 0 )
 			{
-				auto* Tentacle = Tentacles[ 0 ];
+				GaTentacleComponent* NearestTentacle = nullptr;
+				auto NearestDistance = std::numeric_limits< BcF32 >::max();
+				for( size_t Idx = 0; Idx < Tentacles.size(); ++Idx )
+				{
+					auto* Tentacle = Tentacles[ Idx ];
+					if( Tentacle->getTargetStructure() )
+					{
+						auto Distance = ( getParentEntity()->getWorldPosition().xy() - Tentacle->getParentEntity()->getWorldPosition().xy() ).magnitudeSquared();
+						if( Distance < NearestDistance )
+						{
+							NearestTentacle = Tentacle;
+							NearestDistance = Distance;
+						}
+					}
+				}
 
 				// Spawn a projectile.
-				if( TemplateProjectile_ )
+				if( NearestTentacle && TemplateProjectile_ )
 				{
 					auto Entity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams( 
 						BcName::INVALID, TemplateProjectile_,
 						getParentEntity()->getWorldMatrix(),
 						getParentEntity()->getParentEntity() ) );
 					auto Projectile = Entity->getComponentByType< GaProjectileComponent >();
-					Projectile->setTarget( Tentacle->getParentEntity() );
+					Projectile->setTarget( NearestTentacle->getParentEntity() );
+
+					// Time to spawn!
+					Timer_ -= FireRate_;
 				}
 			}
-
-
 		}
 		break;
 

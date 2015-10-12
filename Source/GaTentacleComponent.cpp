@@ -3,6 +3,7 @@
 #include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaStructureComponent.h"
+#include "GaProjectileComponent.h"
 
 #include "System/SysKernel.h"
 
@@ -365,8 +366,8 @@ void GaTentacleComponent::targetStructure()
 
 	if( NearestStructure != nullptr )
 	{
-		NearestStructure->addNotifier( this );
 		TargetStructure_ = NearestStructure;
+		TargetStructure_->addNotifier( this );
 	}
 }
 
@@ -379,7 +380,19 @@ void GaTentacleComponent::targetHome()
 	BcAssert( Physics );
 	
 	TargetPosition_ = Physics->getPointMassPosition( Physics->getNoofPointMasses() - 1 ) + MaVec2d( 256.0f, 0.0f );
+
+	if( TargetStructure_ != nullptr )
+	{
+		TargetStructure_->removeNotifier( this );
+	}
 	TargetStructure_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTargetStructure
+GaStructureComponent* GaTentacleComponent::getTargetStructure() const
+{
+	return TargetStructure_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -395,11 +408,18 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			targetHome();
 			return evtRET_PASS;
 		} );
-
+	
 	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_DEFEND_PHASE, this,
 		[ this ]( EvtID, const EvtBaseEvent & Event )
 		{
 			targetStructure();
+			return evtRET_PASS;
+		} );
+
+	getParentEntity()->subscribe( gaEVT_PROJECTILE_HIT, this, 
+		[ this ]( EvtID, const EvtBaseEvent & Event )
+		{
+			targetHome();
 			return evtRET_PASS;
 		} );
 
@@ -417,6 +437,11 @@ void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 	// TODO: Recursive unsubscribe?
 	// FIND OUT WHY THIS CRASHES ON EXIT.
 	//getParentEntity()->getParentEntity()->unsubscribeAll( this );
+
+	if( TargetStructure_ )
+	{
+		TargetStructure_->removeNotifier( this );
+	}
 
 	getParentEntity()->unsubscribeAll( this );
 	Super::onDetach( Parent );

@@ -3,6 +3,17 @@
 #include "System/Scene/ScnComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// GaProjectileEvents
+enum GaProjectileEvents
+{
+	gaEVT_PROJECTILE_HIT = EVT_MAKE_ID( 'G', 'a', 'P' ),
+};
+
+struct GaProjectileEvent : EvtEvent< GaProjectileEvent >
+{
+};
+
 //////////////////////////////////////////////////////////////////////////
 // GaProjectileProcessor
 class GaProjectileProcessor:

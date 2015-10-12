@@ -42,6 +42,7 @@ public:
 
 	void targetStructure();
 	void targetHome();
+	class GaStructureComponent* getTargetStructure() const;
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;

@@ -81,11 +81,12 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 				BcAssert( PointMass.InvMass_ >= 0.0f );
 				MaVec2d Velocity = PointMass.CurrPosition_ - PointMass.PrevPosition_;
 				Velocity = Velocity * ( 1.0f - PointMass.DampingFactor_ ) + ( PointMass.Acceleration_ * TickSquared );
+				auto MaxVelocityFrame = PointMass.MaxVelocity_ * Tick;
 				if( PointMass.MaxVelocity_ > 0.0f )
 				{
-					if( Velocity.magnitudeSquared() > ( PointMass.MaxVelocity_ * PointMass.MaxVelocity_ ) )
+					if( Velocity.magnitudeSquared() > ( MaxVelocityFrame * MaxVelocityFrame ) )
 					{
-						Velocity = Velocity.normal() * PointMass.MaxVelocity_;
+						Velocity = Velocity.normal() * MaxVelocityFrame;
 					}
 				}
 

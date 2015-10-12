@@ -4,7 +4,7 @@
 #include "System/Scene/ScnComponentProcessor.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// GaHotspotEvents
+// GaGameEvents
 enum GaGameEvents
 {
 	gaEVT_GAME_BEGIN_BUILD_PHASE = EVT_MAKE_ID( 'G', 'a', 'G' ),
