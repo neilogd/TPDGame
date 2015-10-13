@@ -434,9 +434,13 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// TODO: Recursive unsubscribe?
-	// FIND OUT WHY THIS CRASHES ON EXIT.
-	//getParentEntity()->getParentEntity()->unsubscribeAll( this );
+	if( Game_ )
+	{
+		if( Game_->getParentEntity() )
+		{
+			Game_->getParentEntity()->unsubscribeAll( this );
+		}
+	}
 
 	if( TargetStructure_ )
 	{
