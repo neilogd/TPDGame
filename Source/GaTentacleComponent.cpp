@@ -109,6 +109,9 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			
 			// Set first point mass to world position. Should be a soft constraint to make it move smoothly.
 			Physics->setPointMassPosition( 0, Component->getParentEntity()->getWorldPosition().xy() );
+
+			// TODO: Set end points to a new location too. Move them at ~1/4-1/2 the rate to prevent the
+			// tentacle bunching up so badly.
 		}
 	}
 	else

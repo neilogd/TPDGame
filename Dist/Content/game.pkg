@@ -19,7 +19,7 @@
 
 				{
 					"type" : "GaHotspotComponent",
-					"id" : 0,
+					"id" : 1000,
 					"layer" : -1000,
 					"position" : "0.0, 0.0",
 					"size" : "-1.0, -1.0"

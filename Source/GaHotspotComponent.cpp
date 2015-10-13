@@ -87,13 +87,17 @@ void GaHotspotProcessor::setupHotspots( const ScnComponentList& Components )
 		HotspotComponents_.emplace_back( Component );
 	}
 
-	// Sort by their Z position.
+	// Sort by their layer.
 	std::sort( HotspotComponents_.begin(), HotspotComponents_.end(), 
 		[]( const GaHotspotComponent* A, const GaHotspotComponent* B )
 		{
-			return A->Layer_ < B->Layer_;
+			return A->Layer_ > B->Layer_;
 		} );
 
+	if( HotspotComponents_.size() >= 2 )
+	{
+		int a = 0; ++a;
+	}
 	// Process pending events.
 	for( const auto& EventPair : MouseEvents_ )
 	{
@@ -188,6 +192,7 @@ void GaHotspotComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "ID_", &GaHotspotComponent::ID_, bcRFF_IMPORTER ),
+		new ReField( "Layer_", &GaHotspotComponent::Layer_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &GaHotspotComponent::Position_, bcRFF_IMPORTER ),
 		new ReField( "Size_", &GaHotspotComponent::Size_, bcRFF_IMPORTER ),
 	};

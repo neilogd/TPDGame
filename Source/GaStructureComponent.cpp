@@ -1,5 +1,6 @@
 #include "GaStructureComponent.h"
 #include "GaGameComponent.h"
+#include "GaHotspotComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaProjectileComponent.h"
 #include "GaTentacleComponent.h"
@@ -168,6 +169,21 @@ void GaStructureComponent::setupTopology()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setupHotspot
+void GaStructureComponent::setupHotspot()
+{
+	auto Sprite = getComponentByType< ScnSpriteComponent >();
+	if( Sprite )
+	{
+		getParentEntity()->attach< GaHotspotComponent >( 
+			BcName::INVALID, 
+			0, 0, 
+			Sprite->getPosition() - Sprite->getSize() * 0.5f, 
+			Sprite->getSize() );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttach
 void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -180,6 +196,15 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 	BcAssert( Physics_ );
 	Game_ = getParentEntity()->getComponentAnyParentByType< GaGameComponent >();
 	BcAssert( Game_ );
+
+	// Subscribe to hotspot for pressed.
+	Parent->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< GaHotspotEvent >();
+
+			return evtRET_PASS;
+		} );
 
 	setActive( Active_ );
 
@@ -206,6 +231,7 @@ void GaStructureComponent::setActive( BcBool Active )
 	if( Active_ )
 	{
 		setupTopology();
+		setupHotspot();		
 	}
 
 	auto Sprite = getComponentByType< ScnSpriteComponent >();

@@ -45,6 +45,7 @@ public:
 	virtual ~GaStructureComponent();
 
 	void setupTopology();
+	void setupHotspot();
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;

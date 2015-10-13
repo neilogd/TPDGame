@@ -126,10 +126,13 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 
-			if( SelectedStructure_ )
+			if( Event.ID_ == 1000 )
 			{
-				SelectedStructure_->getParentEntity()->setWorldPosition( 
-					MaVec3d( Event.Position_, 0.0f ) );
+				if( SelectedStructure_ )
+				{
+					SelectedStructure_->getParentEntity()->setWorldPosition( 
+						MaVec3d( Event.Position_, 0.0f ) );
+				}
 			}
 			return evtRET_PASS;
 		} );
@@ -139,14 +142,16 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
-
-			if( SelectedStructure_ )
+			if( Event.ID_ == 1000 )
 			{
-				SelectedStructure_->getParentEntity()->setWorldPosition( 
-					MaVec3d( Event.Position_, 0.0f ) );
-				buildStructure( SelectedStructure_ );
-				SelectedStructure_ = nullptr;
-				setInputState( InputState::IDLE );
+				if( SelectedStructure_ )
+				{
+					SelectedStructure_->getParentEntity()->setWorldPosition( 
+						MaVec3d( Event.Position_, 0.0f ) );
+					buildStructure( SelectedStructure_ );
+					SelectedStructure_ = nullptr;
+					setInputState( InputState::IDLE );
+				}
 			}
 			return evtRET_PASS;
 		} );
