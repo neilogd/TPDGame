@@ -40,9 +40,12 @@ public:
 	void setupSimpleTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
 	void addPhysicsNoise();
 
+	void calculateLevelStats( BcU32 Level );
+
 	void targetStructure();
 	void targetHome();
 	class GaStructureComponent* getTargetStructure() const;
+
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
@@ -53,8 +56,11 @@ private:
 	friend class GaTentacleProcessor;
 
 	BcF32 MoveSpeed_ = 64.0f;
+	BcF32 MoveSpeedMultiplier_ = 0.1f;
 	BcF32 HeadDamping_ = 0.5f;
 	BcF32 HeadConstraintRigidity_ = 0.5f;
+
+	BcF32 CalculatedMoveSpeed_ = 0.0f;
 
 	class GaGameComponent* Game_ = nullptr;
 

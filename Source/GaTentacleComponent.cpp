@@ -87,7 +87,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 				Component->TargetPosition_ = Component->TargetStructure_->getParentEntity()->getWorldPosition().xy();
 			}
 
-			const BcF32 MoveSpeed = Component->MoveSpeed_ * Tick;
+			const BcF32 MoveSpeed = Component->CalculatedMoveSpeed_ * Tick;
 			auto ComponentPos = Component->getParentEntity()->getWorldPosition().xy();
 			auto TargetVec = Component->TargetPosition_ - ComponentPos;
 			if( TargetVec.magnitude() < 32.0f )
@@ -126,6 +126,7 @@ void GaTentacleComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "MoveSpeed_", &GaTentacleComponent::MoveSpeed_, bcRFF_IMPORTER ),
+		new ReField( "MoveSpeedMultiplier_", &GaTentacleComponent::MoveSpeedMultiplier_, bcRFF_IMPORTER ),
 		new ReField( "HeadDamping_", &GaTentacleComponent::HeadDamping_, bcRFF_IMPORTER ),
 		new ReField( "HeadConstraintRigidity_", &GaTentacleComponent::HeadConstraintRigidity_, bcRFF_IMPORTER ),
 	};
@@ -192,14 +193,11 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 	{
 		PointMass.CurrPosition_ += RootPosition;
 		PointMass.PrevPosition_ += RootPosition;
-		PointMass.Acceleration_ = MaVec2d( 0.0f, 100.0f );
+		PointMass.Acceleration_ = MaVec2d( 0.0f, 0.0f );
 	}
-	PointMasses[0].Acceleration_ = MaVec2d( 0.0f, 0.0f );
 
 	// Pin the end.
-	//PointMasses[ PointMasses.size() - 2 ].InvMass_ = 0.0f;
 	PointMasses[ PointMasses.size() - 1 ].InvMass_ = 0.0f;
-	//PointMasses[ PointMasses.size() - 2 ].DampingFactor_ = 1.0f;
 	PointMasses[ PointMasses.size() - 1 ].DampingFactor_= 1.0f;
 
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
@@ -346,6 +344,14 @@ void GaTentacleComponent::addPhysicsNoise()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// calculateLevelStats
+void GaTentacleComponent::calculateLevelStats( BcU32 Level )
+{
+	BcF32 Levelf = static_cast< BcF32 >( Level );
+	CalculatedMoveSpeed_ = MoveSpeed_ * ( 1.0f + Levelf * MoveSpeedMultiplier_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // targetStructure
 void GaTentacleComponent::targetStructure()
 {
@@ -409,6 +415,13 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 	
+	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_BUILD_PHASE, this,
+		[ this ]( EvtID, const EvtBaseEvent & Event )
+		{
+			calculateLevelStats( Event.get< GaGameEvent >().Level_ );
+			return evtRET_PASS;
+		} );
+
 	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_DEFEND_PHASE, this,
 		[ this ]( EvtID, const EvtBaseEvent & Event )
 		{
@@ -426,6 +439,7 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
 	addPhysicsNoise();
 	targetHome();
+	calculateLevelStats( 1 );
 
 	Super::onAttach( Parent );
 }
