@@ -102,6 +102,12 @@ void GaStructureComponent::StaticRegisterClass()
 		new ReField( "Level_", &GaStructureComponent::Level_, bcRFF_IMPORTER ),
 		new ReField( "Floating_", &GaStructureComponent::Floating_, bcRFF_IMPORTER ),
 		new ReField( "Active_", &GaStructureComponent::Active_, bcRFF_IMPORTER ),
+
+		new ReField( "BuildCost_", &GaStructureComponent::BuildCost_, bcRFF_IMPORTER ),
+		new ReField( "BaseUpgradeCost_", &GaStructureComponent::BaseUpgradeCost_, bcRFF_IMPORTER ),
+		new ReField( "LevelUpgradeCost_", &GaStructureComponent::LevelUpgradeCost_, bcRFF_IMPORTER ),
+		new ReField( "CalculatedUpgradeCost_", &GaStructureComponent::CalculatedUpgradeCost_, bcRFF_TRANSIENT ),
+
 		new ReField( "StructureType_", &GaStructureComponent::StructureType_, bcRFF_IMPORTER ),
 		new ReField( "TemplateProjectile_", &GaStructureComponent::TemplateProjectile_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "FireRate_", &GaStructureComponent::FireRate_, bcRFF_IMPORTER ),
@@ -246,7 +252,11 @@ void GaStructureComponent::setActive( BcBool Active )
 // incLevel
 BcU32 GaStructureComponent::incLevel()
 {
-	return ++Level_;
+	++Level_;
+
+	CalculatedUpgradeCost_ = BaseUpgradeCost_ + ( Level_ * LevelUpgradeCost_ );
+
+	return Level_;
 }
 
 //////////////////////////////////////////////////////////////////////////

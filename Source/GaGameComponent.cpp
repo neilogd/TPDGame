@@ -271,6 +271,25 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// incScore
+void GaGameComponent::incScore( BcS64 NoofPoints )
+{
+	PlayerScore_ += NoofPoints;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// spendResources
+BcBool GaGameComponent::spendResources( BcS64 NoofResources )
+{
+	if( NoofResources <= 0 || PlayerResources_ >= NoofResources )
+	{
+		PlayerResources_ -= NoofResources;
+		return BcTrue;
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setGameState
 void GaGameComponent::setGameState( GameState GameState )
 {
@@ -305,7 +324,12 @@ void GaGameComponent::setInputState( InputState InputState )
 
 	if( SelectedStructure_ )
 	{
-		getParentEntity()->detach( SelectedStructure_->getParentEntity() );
+		// Give cost back.
+		auto* StructureComponent = SelectedStructure_->getComponentByType< GaStructureComponent >();
+		auto Cost = StructureComponent->getBuildCost();
+		spendResources( -Cost );
+
+		ScnCore::pImpl()->removeEntity( SelectedStructure_->getParentEntity() );
 		SelectedStructure_ = nullptr;
 	}
 
@@ -335,6 +359,8 @@ void GaGameComponent::update( BcF32 Tick )
 #if !PSY_PRODUCTION
 	if( ImGui::Begin( "Game Debug" ) )
 	{
+		ImGui::Text( "Player score: %lld", PlayerScore_ );
+		ImGui::Text( "Player resources: %lld", PlayerResources_ );
 		ImGui::Text( "Game timer: %f", GameTimer_ );
 		ImGui::Text( "Game state: %u", GameState_ );
 		ImGui::Text( "Game level: %u", Level_ );
@@ -406,14 +432,19 @@ void GaGameComponent::onBuildPhase( BcF32 Tick )
 					std::string ButtonText = std::string( "Build " ) + (*StructureComponent->getName());
 					if( ImGui::Button( ButtonText.c_str() ) )
 					{
-						// Set input state (clears selected already)
-						setInputState( InputState::BUILD_BUILDING );
+						// Get cost of structure.
+						auto Cost = StructureComponent->getBuildCost();
+						if( spendResources( Cost ) )
+						{
+							// Set input state (clears selected already)
+							setInputState( InputState::BUILD_BUILDING );
 
-						// Setup new structure.
-						auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams(
-							StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() ) );
-						BcAssert( SpawnedEntity );
-						SelectedStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
+							// Setup new structure.
+							auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams(
+								StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() ) );
+							BcAssert( SpawnedEntity );
+							SelectedStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
+						}
 					}
 				}
 			}

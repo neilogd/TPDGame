@@ -15,7 +15,11 @@
 
 					"structuretype" : "TURRET",
 					"templateprojectile" : "$(ScnEntity:projectiles.ProjectileEntity_0)",
-					"firerate" : 5.0
+					"firerate" : 5.0,
+
+					"buildcost" : 10,
+					"baseupgradecost" : 10,
+					"levelupgradecost" : 10
 				},
 
 				{
@@ -51,7 +55,11 @@
 					"type" : "GaStructureComponent",
 					"name" : "GaStructureComponent_1",
 
-					"structuretype" : "RESOURCE"
+					"structuretype" : "RESOURCE",
+
+					"buildcost" : 10,
+					"baseupgradecost" : 10,
+					"levelupgradecost" : 10
 				},
 				{
 					"type" : "ScnMaterialComponent",
@@ -86,7 +94,11 @@
 					"type" : "GaStructureComponent",
 					"name" : "GaStructureComponent_2",
 
-					"structuretype" : "POTATO"
+					"structuretype" : "POTATO",
+
+					"buildcost" : 10,
+					"baseupgradecost" : 10,
+					"levelupgradecost" : 10
 				},
 				{
 					"type" : "ScnMaterialComponent",

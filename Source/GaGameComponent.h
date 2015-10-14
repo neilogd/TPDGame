@@ -43,6 +43,10 @@ public:
 	void buildStructure( class GaStructureComponent* Structure );
 	void destroyStructure( class GaStructureComponent* Structure );
 
+	BcS64 getPlayerScore() const { return PlayerScore_; }
+	BcS64 getPlayerResources() const { return PlayerResources_; }
+	void incScore( BcS64 NoofPoints );
+	BcBool spendResources( BcS64 NoofResources );
 
 private:
 	void update( BcF32 Tick );
@@ -81,10 +85,12 @@ private:
 	void setGameState( GameState GameState );
 	void setInputState( InputState InputState );
 
-	GameState GameState_ = GameState::IDLE;
-	InputState InputState_ = InputState::IDLE;
+	// Player specific.
+	BcS64 PlayerScore_ = 0;
+	BcS64 PlayerResources_ = 100;
 
 	// Game state specific.
+	GameState GameState_ = GameState::IDLE;
 	BcF32 GameTimer_ = 0.0f;
 
 	std::vector< class GaStructureComponent* > Structures_;
@@ -94,10 +100,11 @@ private:
 	ScnEntity* CurrentModal_ = nullptr;
 
 	// Input state specific.
+	InputState InputState_ = InputState::IDLE;
 	class GaStructureComponent* SelectedStructure_ = nullptr;
 
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
-	
+
 
 };
