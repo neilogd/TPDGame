@@ -286,8 +286,11 @@ void GaGameComponent::setGameState( GameState GameState )
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
 			break;
 		case GaGameComponent::GameState::DEFEND_PHASE:
-			ScnCore::pImpl()->removeEntity( CurrentModal_ );
-			CurrentModal_ = nullptr;
+			if( CurrentModal_ )
+			{
+				ScnCore::pImpl()->removeEntity( CurrentModal_ );
+				CurrentModal_ = nullptr;
+			}
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
 			break;
 		}
