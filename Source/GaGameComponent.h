@@ -91,6 +91,7 @@ private:
 	std::vector< class GaTentacleComponent* > Tentacles_;
 
 	BcU32 StructureID_ = 0;
+	ScnEntity* CurrentModal_ = nullptr;
 
 	// Input state specific.
 	class GaStructureComponent* SelectedStructure_ = nullptr;

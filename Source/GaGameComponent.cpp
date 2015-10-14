@@ -226,29 +226,34 @@ void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 			BcAssert( Structure->getID() == Event.ID_ );
 
-			auto Entity = ScnCore::pImpl()->spawnEntity( 
-				ScnEntitySpawnParams(
-					BcName::INVALID,
-					UpgradeMenuTemplate_,
-					MaMat4d(), getParentEntity() ) );
-			BcAssert( Entity );
+			if( GameState_ == GameState::BUILD_PHASE )
+			{
+				CurrentModal_ = ScnCore::pImpl()->spawnEntity( 
+					ScnEntitySpawnParams(
+						BcName::INVALID,
+						UpgradeMenuTemplate_,
+						MaMat4d(), getParentEntity() ) );
+				BcAssert( CurrentModal_ );
 
-			// Subscribe to modal buttons.
-			Entity->subscribe( gaEVT_HOTSPOT_PRESSED, this,
-				[ this, Structure, Entity ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
-				{
-					const auto& Event = InEvent.get< GaHotspotEvent >();
-					if( Event.ID_ == 0 )
+				// Subscribe to modal buttons.
+				CurrentModal_->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+					[ this, Structure]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 					{
-						Structure->incLevel();
-						ScnCore::pImpl()->removeEntity( Entity );
-					}
-					else if( Event.ID_ == 1 )
-					{
-						ScnCore::pImpl()->removeEntity( Entity );
-					}
-					return evtRET_PASS;
-				} );
+						const auto& Event = InEvent.get< GaHotspotEvent >();
+						if( Event.ID_ == 0 )
+						{
+							Structure->incLevel();
+							ScnCore::pImpl()->removeEntity( CurrentModal_ );
+							CurrentModal_ = nullptr;
+						}
+						else if( Event.ID_ == 1 )
+						{
+							ScnCore::pImpl()->removeEntity( CurrentModal_ );
+							CurrentModal_ = nullptr;
+						}
+						return evtRET_PASS;
+					} );
+			}
 
 			return evtRET_PASS;
 		} );
@@ -281,6 +286,8 @@ void GaGameComponent::setGameState( GameState GameState )
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
 			break;
 		case GaGameComponent::GameState::DEFEND_PHASE:
+			ScnCore::pImpl()->removeEntity( CurrentModal_ );
+			CurrentModal_ = nullptr;
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
 			break;
 		}
