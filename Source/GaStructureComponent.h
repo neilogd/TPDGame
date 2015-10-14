@@ -50,7 +50,18 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
+	/**
+	 * Sets whether the structure is active or not.
+	 * @param Active If true, will be active in game, if false then
+	 * it will merely render.
+	 */
 	void setActive( BcBool Active );
+
+	/**
+	 * Increment level.
+	 * @return Level the structure has been incremented to.
+	 */
+	BcU32 incLevel();
 
 	void update( BcF32 Tick );
 

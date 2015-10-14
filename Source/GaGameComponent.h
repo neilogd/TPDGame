@@ -57,6 +57,7 @@ private:
 	BcU32 Level_ = 0;
 	BcF32 GamePhaseTime_ = 30.0f;
 	std::vector< ScnEntity* > StructureTemplates_;
+	ScnEntity* UpgradeMenuTemplate_ = nullptr;
 
 	enum class GameState
 	{

@@ -90,6 +90,7 @@ void GaGameComponent::StaticRegisterClass()
 		new ReField( "Level_", &GaGameComponent::Level_, bcRFF_IMPORTER ),
 		new ReField( "GamePhaseTime_", &GaGameComponent::GamePhaseTime_, bcRFF_IMPORTER ),
 		new ReField( "StructureTemplates_", &GaGameComponent::StructureTemplates_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "UpgradeMenuTemplate_", &GaGameComponent::UpgradeMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY )
 	};
 
 	ReRegisterClass< GaGameComponent, Super >( Fields )
@@ -224,6 +225,31 @@ void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 			BcAssert( Structure->getID() == Event.ID_ );
+
+			auto Entity = ScnCore::pImpl()->spawnEntity( 
+				ScnEntitySpawnParams(
+					BcName::INVALID,
+					UpgradeMenuTemplate_,
+					MaMat4d(), getParentEntity() ) );
+			BcAssert( Entity );
+
+			// Subscribe to modal buttons.
+			Entity->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+				[ this, Structure, Entity ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+				{
+					const auto& Event = InEvent.get< GaHotspotEvent >();
+					if( Event.ID_ == 0 )
+					{
+						Structure->incLevel();
+						ScnCore::pImpl()->removeEntity( Entity );
+					}
+					else if( Event.ID_ == 1 )
+					{
+						ScnCore::pImpl()->removeEntity( Entity );
+					}
+					return evtRET_PASS;
+				} );
+
 			return evtRET_PASS;
 		} );
 

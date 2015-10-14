@@ -91,6 +91,31 @@
 					]
 				}
 			]
-		}	
+		},
+
+		// Upgrade dialog.
+		{
+			"name" : "UpgradeModal",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Upgrade",
+					"modal" : true,
+					"entries" : [ 
+						{
+							"text" : "Upgrade",
+							"id": 0
+						},
+
+						{
+							"text" : "Cancel",
+							"id" : 1
+						}
+					]
+				}
+			]
+		}
 	]
 }

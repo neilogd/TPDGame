@@ -14,6 +14,7 @@ struct GaMenuEntry
 	std::string Text_;
 	std::string EntityPackage_;
 	std::string EntityName_;
+	BcU32 ID_ = BcErrorCode;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,7 @@ private:
 	friend class GaMenuProcessor;
 
 	std::string Title_;
+	BcBool Modal_ = BcFalse;
 	std::vector< GaMenuEntry > Entries_;
 	MaVec2d EntrySize_ = MaVec2d( 400.0f, 64.0f );
 	BcF32 EntryMargin_ = 16.0f;

@@ -14,7 +14,9 @@
 						"$(ScnEntity:structures.StructureEntity_0)",
 						"$(ScnEntity:structures.StructureEntity_1)",
 						"$(ScnEntity:structures.StructureEntity_2)"
-					]
+					],
+
+					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)"
 				},
 
 				{

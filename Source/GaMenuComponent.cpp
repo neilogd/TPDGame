@@ -23,7 +23,8 @@ void GaMenuEntry::StaticRegisterClass()
 	{
 		new ReField( "Text_", &GaMenuEntry::Text_, bcRFF_IMPORTER ),
 		new ReField( "EntityPackage_", &GaMenuEntry::EntityPackage_, bcRFF_IMPORTER ),
-		new ReField( "EntityName_", &GaMenuEntry::EntityName_, bcRFF_IMPORTER )
+		new ReField( "EntityName_", &GaMenuEntry::EntityName_, bcRFF_IMPORTER ),
+		new ReField( "ID_", &GaMenuEntry::ID_, bcRFF_IMPORTER )
 	};
 
 	ReRegisterClass< GaMenuEntry >( Fields );
@@ -135,6 +136,7 @@ void GaMenuComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Title_", &GaMenuComponent::Title_, bcRFF_IMPORTER ),
+		new ReField( "Modal_", &GaMenuComponent::Modal_, bcRFF_IMPORTER ),
 		new ReField( "Entries_", &GaMenuComponent::Entries_, bcRFF_IMPORTER ),
 		new ReField( "EntrySize_", &GaMenuComponent::EntrySize_, bcRFF_IMPORTER ),
 		new ReField( "EntryMargin_", &GaMenuComponent::EntryMargin_, bcRFF_IMPORTER ),
@@ -167,9 +169,24 @@ GaMenuComponent::~GaMenuComponent()
 void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Create hotspots.
+	BcU32 Layer = 1000;
 	BcU32 ID = 0;
 	if( Entries_.size() > 0 )
 	{
+		// If modal, pick up blocks for entire screen.
+		if( Modal_ )
+		{
+			OsClient* Client = OsCore::pImpl()->getClient( 0 );
+			MaVec2d Dimensions( Client->getWidth(), Client->getHeight() );
+
+			Parent->attach< GaHotspotComponent >( 
+				GaHotspotComponent::StaticGetTypeName().getUnique(),
+				BcErrorCode, Layer,
+				MaVec2d( 0.0f, 0.0f ),
+				Dimensions );
+			++Layer;
+		}
+
 		const MaVec2d TotalSize = MaVec2d( EntrySize_.x(), ( EntrySize_.y() * Entries_.size() ) + ( EntryMargin_ * ( Entries_.size() - 1 ) ) );
 		MaVec2d EntryPosition = GaPositionUtility::GetScreenPosition(
 			MaVec2d( EntryMargin_, EntryMargin_ ),
@@ -177,12 +194,17 @@ void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 			GaPositionUtility::HCENTRE | GaPositionUtility::VCENTRE );
 		
 		Hotspots_.reserve( Entries_.size() );
-		for( const auto& Entry : Entries_ )
+		for( auto& Entry : Entries_ )
 		{
+			if( Entry.ID_ == BcErrorCode )
+			{
+				Entry.ID_ = ID;
+			}
+			++ID;
 			BcUnusedVar( Entry );
 			Hotspots_.emplace_back( Parent->attach< GaHotspotComponent >( 
 				GaHotspotComponent::StaticGetTypeName().getUnique(),
-				ID++, 0,
+				Entry.ID_, Layer,
 				EntryPosition,
 				EntrySize_ ) );
 
@@ -202,19 +224,24 @@ void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 		{
 			const auto& Event = InEvent.get< GaHotspotEvent >();
-			const auto& Entry = Entries_[ Event.ID_ ];
-			ScnEntitySpawnParams SpawnParams( 
-					BcName::INVALID, Entry.EntityPackage_, Entry.EntityName_,
-					MaMat4d(), getParentEntity()->getParentEntity() );
-			SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Entity )
+			if( Event.ID_ < Entries_.size() )
+			{
+				const auto& Entry = Entries_[ Event.ID_ ];
+				if( !Entry.EntityPackage_.empty() && !Entry.EntityName_.empty() )
 				{
-					ScnCore::pImpl()->removeEntity( getParentEntity() );
-				};
+					ScnEntitySpawnParams SpawnParams( 
+							BcName::INVALID, Entry.EntityPackage_, Entry.EntityName_,
+							MaMat4d(), getParentEntity()->getParentEntity() );
+					SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Entity )
+						{
+							ScnCore::pImpl()->removeEntity( getParentEntity() );
+						};
 
-			ScnCore::pImpl()->spawnEntity( SpawnParams );
+					ScnCore::pImpl()->spawnEntity( SpawnParams );
 
-			PSY_LOG( "Spawning menu %s.%s", Entry.EntityPackage_.c_str(), Entry.EntityName_.c_str() );
-						
+					PSY_LOG( "Spawning menu %s.%s", Entry.EntityPackage_.c_str(), Entry.EntityName_.c_str() );
+				}
+			}						
 			return evtRET_PASS;
 		} );
 
