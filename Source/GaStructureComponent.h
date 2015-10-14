@@ -54,6 +54,9 @@ public:
 
 	void update( BcF32 Tick );
 
+	void setID( BcU32 ID ) { ID_ = ID; }
+	BcU32 getID() const { return ID_; }
+
 private:
 	friend class GaStructureProcessor;
 
@@ -65,6 +68,7 @@ private:
 	GaStructureType StructureType_ = GaStructureType::TURRET;
 	ScnEntity* TemplateProjectile_ = nullptr;
 	BcF32 FireRate_ = 1.0f;
+	BcU32 ID_ = BcErrorCode;
 
 	BcF32 Timer_ = 0.0f;
 	MaVec2d AbsolutePosition_;

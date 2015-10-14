@@ -215,7 +215,18 @@ void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 {
 	BcAssert( Structure );
 	Structures_.push_back( Structure );
+	Structure->setID( StructureID_++ );
 	Structure->setActive( BcTrue );
+
+	// Listen for when structure is press.
+	Structure->getParentEntity()->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+		[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< GaHotspotEvent >();
+			BcAssert( Structure->getID() == Event.ID_ );
+			return evtRET_PASS;
+		} );
+
 }
 
 //////////////////////////////////////////////////////////////////////////

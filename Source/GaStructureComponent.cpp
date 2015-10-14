@@ -175,9 +175,10 @@ void GaStructureComponent::setupHotspot()
 	auto Sprite = getComponentByType< ScnSpriteComponent >();
 	if( Sprite )
 	{
+		BcAssert( ID_ != BcErrorCode );
 		getParentEntity()->attach< GaHotspotComponent >( 
-			BcName::INVALID, 
-			0, 0, 
+			BcName::INVALID,
+			ID_, 0, 
 			Sprite->getPosition() - Sprite->getSize() * 0.5f, 
 			Sprite->getSize() );
 	}

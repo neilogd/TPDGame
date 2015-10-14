@@ -89,6 +89,8 @@ private:
 	std::vector< class GaStructureComponent* > Structures_;
 	std::vector< class GaTentacleComponent* > Tentacles_;
 
+	BcU32 StructureID_ = 0;
+
 	// Input state specific.
 	class GaStructureComponent* SelectedStructure_ = nullptr;
 
