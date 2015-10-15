@@ -230,12 +230,15 @@ void GaGameComponent::buildStructure( GaStructureComponent* Structure )
 
 				// Subscribe to modal buttons.
 				CurrentModal_->subscribe( gaEVT_HOTSPOT_PRESSED, this,
-					[ this, Structure]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+					[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 					{
 						const auto& Event = InEvent.get< GaHotspotEvent >();
 						if( Event.ID_ == 0 )
 						{
-							Structure->incLevel();
+							if( spendResources( Structure->getUpgradeCost() ) )
+							{
+								Structure->incLevel();
+							}
 							ScnCore::pImpl()->removeEntity( CurrentModal_ );
 							CurrentModal_ = nullptr;
 						}

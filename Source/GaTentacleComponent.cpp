@@ -475,5 +475,6 @@ void GaTentacleComponent::onObjectDeleted( class ReObject* Object )
 	if( Object == TargetStructure_ )
 	{
 		TargetStructure_ = nullptr;
+		targetHome();
 	}
 }
