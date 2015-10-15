@@ -106,11 +106,15 @@ void GaStructureComponent::StaticRegisterClass()
 		new ReField( "BuildCost_", &GaStructureComponent::BuildCost_, bcRFF_IMPORTER ),
 		new ReField( "BaseUpgradeCost_", &GaStructureComponent::BaseUpgradeCost_, bcRFF_IMPORTER ),
 		new ReField( "LevelUpgradeCost_", &GaStructureComponent::LevelUpgradeCost_, bcRFF_IMPORTER ),
-		new ReField( "CalculatedUpgradeCost_", &GaStructureComponent::CalculatedUpgradeCost_, bcRFF_TRANSIENT ),
+		new ReField( "CalculatedUpgradeCost_", &GaStructureComponent::CalculatedUpgradeCost_ ),
+
+		new ReField( "FireRate_", &GaStructureComponent::FireRate_, bcRFF_IMPORTER ),
+		new ReField( "LevelFireRateMultiplier_", &GaStructureComponent::LevelFireRateMultiplier_, bcRFF_IMPORTER ),
+		new ReField( "CalculatedFireRate_", &GaStructureComponent::CalculatedFireRate_ ),
+
 
 		new ReField( "StructureType_", &GaStructureComponent::StructureType_, bcRFF_IMPORTER ),
 		new ReField( "TemplateProjectile_", &GaStructureComponent::TemplateProjectile_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
-		new ReField( "FireRate_", &GaStructureComponent::FireRate_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< GaStructureComponent, Super >( Fields )
@@ -215,6 +219,8 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 
 	setActive( Active_ );
 
+	Level_ = 0;
+	incLevel();
 	Timer_ = FireRate_;
 	
 	Super::onAttach( Parent );
@@ -255,6 +261,7 @@ BcU32 GaStructureComponent::incLevel()
 	++Level_;
 
 	CalculatedUpgradeCost_ = BaseUpgradeCost_ + ( Level_ * LevelUpgradeCost_ );
+	CalculatedFireRate_ = FireRate_ * std::pow( LevelFireRateMultiplier_, static_cast< BcF32 >( Level_ ) );
 
 	return Level_;
 }
@@ -279,7 +286,7 @@ void GaStructureComponent::update( BcF32 Tick )
 		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
 		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
 #endif
-		if( Timer_ < FireRate_ )
+		if( Timer_ < CalculatedFireRate_ )
 		{
 			Timer_ += Tick;
 		}
@@ -288,7 +295,7 @@ void GaStructureComponent::update( BcF32 Tick )
 	switch( StructureType_ )
 	{
 	case GaStructureType::TURRET:
-		if( Timer_ >= FireRate_ )
+		if( Timer_ >= CalculatedFireRate_ )
 		{
 			// Find a tentacle.
 			const auto& Tentacles = Game_->getTentacles();
@@ -318,10 +325,11 @@ void GaStructureComponent::update( BcF32 Tick )
 						getParentEntity()->getWorldMatrix(),
 						getParentEntity()->getParentEntity() ) );
 					auto Projectile = Entity->getComponentByType< GaProjectileComponent >();
+					Projectile->setLevel( Level_ );
 					Projectile->setTarget( NearestTentacle->getParentEntity() );
 
 					// Time to spawn!
-					Timer_ -= FireRate_;
+					Timer_ -= CalculatedFireRate_;
 				}
 			}
 		}

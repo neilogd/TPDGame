@@ -158,31 +158,24 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		} );
 
 	// Spawn tentacle things.
-	MaMat4d TransformA;
-	MaMat4d TransformB;
-	auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 128.0f, 128.0f ), MaVec2d( 32.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::LEFT );
-	auto TentacleB = GaPositionUtility::GetScreenPosition( MaVec2d( 128.0f, 128.0f ), MaVec2d( 32.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::RIGHT );
-	TransformA.translation( MaVec3d( TentacleA, 0.0f ) );
-	TransformB.translation( MaVec3d( TentacleB, 0.0f ) );
 
-	auto SpawnParamsA = ScnEntitySpawnParams( 
-			BcName::INVALID, "tentacles", "TentacleEntity_0",
-			TransformA, Parent );
-	auto SpawnParamsB = ScnEntitySpawnParams( 
-			BcName::INVALID, "tentacles", "TentacleEntity_1",
-			TransformB, Parent );
+	for( BcF32 X = -480.0f; X <= 480.0f; X += 120.0f )
+	{
+		MaMat4d TransformA;
+		auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 128.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
+		TransformA.translation( MaVec3d( TentacleA, 0.0f ) + MaVec3d( X, 0.0f, 0.0f ) );
 
-	SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
-		{
-			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
-		};
-	SpawnParamsB.OnSpawn_ = [ this ]( ScnEntity* Parent )
-		{
-			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
-		};
+		auto SpawnParamsA = ScnEntitySpawnParams( 
+				BcName::INVALID, "tentacles", "TentacleEntity_0",
+				TransformA, Parent );
 
-	ScnCore::pImpl()->spawnEntity( SpawnParamsA );
-	ScnCore::pImpl()->spawnEntity( SpawnParamsB );
+		SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
+			{
+				Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+			};
+
+		ScnCore::pImpl()->spawnEntity( SpawnParamsA );
+	}
 
 	
 	Super::onAttach( Parent );

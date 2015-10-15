@@ -84,10 +84,12 @@ private:
 	BcS64 BaseUpgradeCost_ = 0;
 	BcS64 LevelUpgradeCost_ = 0;
 	BcS64 CalculatedUpgradeCost_ = 0;
+	BcF32 FireRate_ = 0.0f;
+	BcF32 LevelFireRateMultiplier_ = 0.9f;
+	BcF32 CalculatedFireRate_ = FireRate_;
 
 	GaStructureType StructureType_ = GaStructureType::TURRET;
 	ScnEntity* TemplateProjectile_ = nullptr;
-	BcF32 FireRate_ = 1.0f;
 	BcU32 ID_ = BcErrorCode;
 
 

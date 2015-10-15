@@ -16,6 +16,7 @@
 					"structuretype" : "TURRET",
 					"templateprojectile" : "$(ScnEntity:projectiles.ProjectileEntity_0)",
 					"firerate" : 5.0,
+					"levelfireratemultiplier" : 0.9,
 
 					"buildcost" : 10,
 					"baseupgradecost" : 10,

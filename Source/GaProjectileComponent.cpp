@@ -100,6 +100,8 @@ void GaProjectileComponent::StaticRegisterClass()
 	{
 		new ReField( "DamageDistance_", &GaProjectileComponent::DamageDistance_, bcRFF_IMPORTER ),
 		new ReField( "MaxSpeed_", &GaProjectileComponent::MaxSpeed_, bcRFF_IMPORTER ),
+		new ReField( "LevelSpeedMultiplier_", &GaProjectileComponent::LevelSpeedMultiplier_, bcRFF_IMPORTER ),
+		new ReField( "CalculatedMaxSpeed_", &GaProjectileComponent::CalculatedMaxSpeed_ ),
 		new ReField( "Acceleration_", &GaProjectileComponent::Acceleration_, bcRFF_IMPORTER ),
 		new ReField( "Drag_", &GaProjectileComponent::Drag_, bcRFF_IMPORTER ),
 		new ReField( "Mass_", &GaProjectileComponent::Mass_, bcRFF_IMPORTER ),
@@ -133,7 +135,7 @@ void GaProjectileComponent::setupTopology()
 	PointMasses.reserve( 1 );
 	Constraints.reserve( 1 );
 
-	PointMasses.emplace_back( GaPhysicsPointMass( getParentEntity()->getWorldPosition().xy(), Drag_, 1.0f / 1.0f, MaxSpeed_ ) );
+	PointMasses.emplace_back( GaPhysicsPointMass( getParentEntity()->getWorldPosition().xy(), Drag_, 1.0f / 1.0f, CalculatedMaxSpeed_ ) );
 
 	Physics_->setup( std::move( PointMasses ), std::move( Constraints ) );
 }
@@ -162,8 +164,17 @@ void GaProjectileComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setLevel
+void GaProjectileComponent::setLevel( BcU32 Level )
+{
+	auto Levelf = static_cast< BcF32 >( Level );
+	CalculatedMaxSpeed_ = MaxSpeed_ * ( 1.0f + Levelf );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setTarget
 void GaProjectileComponent::setTarget( ScnEntity* Target )
 {
 	Target_ = Target;
 }
+
