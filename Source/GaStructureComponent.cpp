@@ -108,9 +108,13 @@ void GaStructureComponent::StaticRegisterClass()
 		new ReField( "LevelUpgradeCost_", &GaStructureComponent::LevelUpgradeCost_, bcRFF_IMPORTER ),
 		new ReField( "CalculatedUpgradeCost_", &GaStructureComponent::CalculatedUpgradeCost_ ),
 
-		new ReField( "FireRate_", &GaStructureComponent::FireRate_, bcRFF_IMPORTER ),
+		new ReField( "BaseFireRate_", &GaStructureComponent::BaseFireRate_, bcRFF_IMPORTER ),
 		new ReField( "LevelFireRateMultiplier_", &GaStructureComponent::LevelFireRateMultiplier_, bcRFF_IMPORTER ),
 		new ReField( "CalculatedFireRate_", &GaStructureComponent::CalculatedFireRate_ ),
+
+		new ReField( "BaseResourceRate_", &GaStructureComponent::BaseResourceRate_, bcRFF_IMPORTER ),
+		new ReField( "LevelResourcesRateMultiplier_", &GaStructureComponent::LevelResourcesRateMultiplier_, bcRFF_IMPORTER ),
+		new ReField( "CalculatedResourceRate_", &GaStructureComponent::CalculatedResourceRate_ ),
 
 
 		new ReField( "StructureType_", &GaStructureComponent::StructureType_, bcRFF_IMPORTER ),
@@ -217,11 +221,22 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
+	// Begin build phase event
+	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_BUILD_PHASE, this, 
+		[ this ]( EvtID, const EvtBaseEvent & Event )
+		{
+			if( StructureType_ == GaStructureType::RESOURCE )
+			{
+				Game_->spendResources( -CalculatedResourceRate_ );
+			}
+			return evtRET_PASS;
+		} );
+
 	setActive( Active_ );
 
 	Level_ = 0;
 	incLevel();
-	Timer_ = FireRate_;
+	Timer_ = BaseFireRate_;
 	
 	Super::onAttach( Parent );
 }
@@ -261,7 +276,9 @@ BcU32 GaStructureComponent::incLevel()
 	++Level_;
 
 	CalculatedUpgradeCost_ = BaseUpgradeCost_ + ( Level_ * LevelUpgradeCost_ );
-	CalculatedFireRate_ = FireRate_ * std::pow( LevelFireRateMultiplier_, static_cast< BcF32 >( Level_ ) );
+	CalculatedFireRate_ = BaseFireRate_ * std::pow( LevelFireRateMultiplier_, static_cast< BcF32 >( Level_ ) );
+
+	CalculatedResourceRate_ = BaseResourceRate_ + ( Level_ * LevelResourcesRateMultiplier_ );
 
 	return Level_;
 }

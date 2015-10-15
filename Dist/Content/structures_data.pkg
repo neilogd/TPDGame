@@ -1,11 +1,38 @@
 {
 	"resources" : [
+	{
+			"type"			: "ScnTextureAtlas",
+			"name"			: "structure_template_tileset",
+
+			"source"		: "Content/Textures/structure_template_tileset.png",
+
+			"tileatlas"	: true,
+			"tilewidth" : 128,
+			"tileheight" : 128,
+			"format" : "R8G8B8A8"
+		},
+
 		{
 			"type"			: "ScnMaterial",
 			"name"			: "material",
 
 			// Shader
-			"shader"		: "$(ScnShader:shaders.default_shader)",
+			"shader"		: "$(ScnShader:shaders.textured_shader)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:this.structure_template_tileset)"
+			},
+
+			// Samplers
+			"samplers"		: {
+				"aDiffuseTex"	: {
+					"addressu" : "clamp",
+					"addressv" : "clamp",
+					"minfilter" : "nearest",
+					"magfilter" : "nearest"
+				}
+			},
 
 			// New render state.
 			"renderstate" : {

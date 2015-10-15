@@ -80,13 +80,21 @@ private:
 	BcBool Floating_ = BcFalse;
 	BcBool Active_ = BcFalse;
 
+	/// Cost.
 	BcS64 BuildCost_ = 0;
 	BcS64 BaseUpgradeCost_ = 0;
 	BcS64 LevelUpgradeCost_ = 0;
 	BcS64 CalculatedUpgradeCost_ = 0;
-	BcF32 FireRate_ = 0.0f;
+
+	// Turret.
+	BcF32 BaseFireRate_ = 1.0f;
 	BcF32 LevelFireRateMultiplier_ = 0.9f;
-	BcF32 CalculatedFireRate_ = FireRate_;
+	BcF32 CalculatedFireRate_ = BaseFireRate_;
+
+	// Resource.
+	BcS64 BaseResourceRate_ = 10;
+	BcS64 LevelResourcesRateMultiplier_ = 10;
+	BcS64 CalculatedResourceRate_ = BaseResourceRate_;
 
 	GaStructureType StructureType_ = GaStructureType::TURRET;
 	ScnEntity* TemplateProjectile_ = nullptr;

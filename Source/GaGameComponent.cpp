@@ -159,7 +159,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Spawn tentacle things.
 
-	for( BcF32 X = -480.0f; X <= 480.0f; X += 120.0f )
+	for( BcF32 X = -480.0f; X <= 480.0f; X += 240.0f )
 	{
 		MaMat4d TransformA;
 		auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 128.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
