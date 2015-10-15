@@ -72,6 +72,7 @@ public:
 
 	BcS64 getBuildCost() const { return BuildCost_; }
 	BcS64 getUpgradeCost() const { return CalculatedUpgradeCost_; }
+	GaStructureType getStructureType() const { return StructureType_; }
 
 private:
 	friend class GaStructureProcessor;

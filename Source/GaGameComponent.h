@@ -26,7 +26,8 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // GaGameComponent
 class GaGameComponent:
-	public ScnComponent
+	public ScnComponent,
+	public ReIObjectNotify
 {
 public:
 	REFLECTION_DECLARE_DERIVED( GaGameComponent, ScnComponent );
@@ -37,11 +38,16 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
+	void onObjectDeleted( class ReObject* Object ) override;
+
 	const std::vector< class GaStructureComponent* >& getStructures() const;
 	const std::vector< class GaTentacleComponent* >& getTentacles() const;
 
 	void buildStructure( class GaStructureComponent* Structure );
 	void destroyStructure( class GaStructureComponent* Structure );
+
+	void launchProjectile( class GaProjectileComponent* Projectile );
+	class GaTentacleComponent* getNearestTentacle() const;
 
 	BcS64 getPlayerScore() const { return PlayerScore_; }
 	BcS64 getPlayerResources() const { return PlayerResources_; }
@@ -95,6 +101,7 @@ private:
 
 	std::vector< class GaStructureComponent* > Structures_;
 	std::vector< class GaTentacleComponent* > Tentacles_;
+	std::vector< class GaProjectileComponent* > Projectiles_;
 
 	BcU32 StructureID_ = 0;
 	ScnEntity* CurrentModal_ = nullptr;

@@ -1,5 +1,6 @@
 #include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
+#include "GaProjectileComponent.h"
 #include "GaStructureComponent.h"
 #include "GaTentacleComponent.h"
 #include "GaPositionUtility.h"
@@ -159,7 +160,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Spawn tentacle things.
 
-	for( BcF32 X = -480.0f; X <= 480.0f; X += 240.0f )
+	for( BcF32 X = -480.0f; X <= 480.0f; X += 120.0f )
 	{
 		MaMat4d TransformA;
 		auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 128.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
@@ -187,6 +188,30 @@ void GaGameComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Parent->unsubscribeAll( this );
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onObjectDeleted
+void GaGameComponent::onObjectDeleted( class ReObject* Object )
+{
+	auto Structure = std::find( Structures_.begin(), Structures_.end(), Object );
+	auto Tentacle = std::find( Tentacles_.begin(), Tentacles_.end(), Object );
+	auto Projectile = std::find( Projectiles_.begin(), Projectiles_.end(), Object );
+
+	if( Structure != Structures_.end() )
+	{
+		Structures_.erase( Structure );
+	}
+
+	if( Tentacle != Tentacles_.end() )
+	{
+		Tentacles_.erase( Tentacle );
+	}
+
+	if( Projectile != Projectiles_.end() )
+	{
+		Projectiles_.erase( Projectile );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -264,6 +289,50 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 	Structure->setActive( BcFalse );
 	Structures_.erase( std::find( Structures_.begin(), Structures_.end(), Structure ) );
 	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// launchProjectile
+void GaGameComponent::launchProjectile( GaProjectileComponent* Projectile )
+{
+	Projectiles_.push_back( Projectile );
+	Projectile->addNotifier( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNearestTentacle
+class GaTentacleComponent* GaGameComponent::getNearestTentacle() const
+{
+	GaTentacleComponent* NearestTentacle = nullptr;
+	if( Tentacles_.size() > 0 )
+	{
+		auto NearestDistance = std::numeric_limits< BcF32 >::max();
+		for( size_t Idx = 0; Idx < Tentacles_.size(); ++Idx )
+		{
+			auto* Tentacle = Tentacles_[ Idx ];
+			if( Tentacle->getTargetStructure() )
+			{
+				// Check if projectile is targetting tentacle already.
+				auto FoundProjectile = 
+					std::find_if( Projectiles_.begin(), Projectiles_.end(),
+						[ Tentacle ]( GaProjectileComponent* Projectile )
+						{
+							return Projectile->getTarget() == Tentacle->getParentEntity();
+						} );
+
+				if( FoundProjectile == Projectiles_.end() )
+				{
+					auto Distance = ( getParentEntity()->getWorldPosition().xy() - Tentacle->getParentEntity()->getWorldPosition().xy() ).magnitudeSquared();
+					if( Distance < NearestDistance )
+					{
+						NearestTentacle = Tentacle;
+						NearestDistance = Distance;
+					}
+				}
+			}	
+		}
+	}
+	return NearestTentacle;
 }
 
 //////////////////////////////////////////////////////////////////////////

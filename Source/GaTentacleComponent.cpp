@@ -362,17 +362,37 @@ void GaTentacleComponent::targetStructure()
 	GaStructureComponent* NearestStructure = nullptr;
 	auto ShortestDistance = std::numeric_limits< BcF32 >::max();
 	const auto& Structures = Game_->getStructures();
+
+	// Potato first.
 	for( auto Structure : Structures )
 	{
-		auto TargetPos = Structure->getParentEntity()->getWorldPosition().xy();
-		auto Distance = ( TargetPos - ComponentPos ).magnitude();
-		if( Distance < ShortestDistance )
+		if( Structure->getStructureType() == GaStructureType::POTATO )
 		{
-			ShortestDistance = Distance;
-			NearestStructure = Structure;
+			auto TargetPos = Structure->getParentEntity()->getWorldPosition().xy();
+			auto Distance = ( TargetPos - ComponentPos ).magnitude();
+			if( Distance < ShortestDistance )
+			{
+				ShortestDistance = Distance;
+				NearestStructure = Structure;
+			}
 		}
 	}
 
+	// Now other structures.
+	if( NearestStructure == nullptr )
+	{
+		for( auto Structure : Structures )
+		{
+			auto TargetPos = Structure->getParentEntity()->getWorldPosition().xy();
+			auto Distance = ( TargetPos - ComponentPos ).magnitude();
+			if( Distance < ShortestDistance )
+			{
+				ShortestDistance = Distance;
+				NearestStructure = Structure;
+			}
+		}
+	}
+	
 	if( NearestStructure != nullptr )
 	{
 		TargetStructure_ = NearestStructure;

@@ -41,6 +41,7 @@ public:
 
 	void setLevel( BcU32 Level );
 	void setTarget( ScnEntity* Target );
+	ScnEntity* getTarget() const { return Target_; }
 
 private:
 	friend class GaProjectileProcessor;

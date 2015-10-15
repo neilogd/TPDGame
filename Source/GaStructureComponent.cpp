@@ -315,39 +315,22 @@ void GaStructureComponent::update( BcF32 Tick )
 		if( Timer_ >= CalculatedFireRate_ )
 		{
 			// Find a tentacle.
-			const auto& Tentacles = Game_->getTentacles();
-			if( Tentacles.size() > 0 )
+			GaTentacleComponent* NearestTentacle = Game_->getNearestTentacle();
+				
+			// Spawn a projectile.
+			if( NearestTentacle && TemplateProjectile_ )
 			{
-				GaTentacleComponent* NearestTentacle = nullptr;
-				auto NearestDistance = std::numeric_limits< BcF32 >::max();
-				for( size_t Idx = 0; Idx < Tentacles.size(); ++Idx )
-				{
-					auto* Tentacle = Tentacles[ Idx ];
-					if( Tentacle->getTargetStructure() )
-					{
-						auto Distance = ( getParentEntity()->getWorldPosition().xy() - Tentacle->getParentEntity()->getWorldPosition().xy() ).magnitudeSquared();
-						if( Distance < NearestDistance )
-						{
-							NearestTentacle = Tentacle;
-							NearestDistance = Distance;
-						}
-					}
-				}
+				auto Entity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams( 
+					BcName::INVALID, TemplateProjectile_,
+					getParentEntity()->getWorldMatrix(),
+					Game_->getParentEntity() ) );
+				auto Projectile = Entity->getComponentByType< GaProjectileComponent >();
+				Projectile->setLevel( Level_ );
+				Projectile->setTarget( NearestTentacle->getParentEntity() );
+				Game_->launchProjectile( Projectile );
 
-				// Spawn a projectile.
-				if( NearestTentacle && TemplateProjectile_ )
-				{
-					auto Entity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams( 
-						BcName::INVALID, TemplateProjectile_,
-						getParentEntity()->getWorldMatrix(),
-						getParentEntity()->getParentEntity() ) );
-					auto Projectile = Entity->getComponentByType< GaProjectileComponent >();
-					Projectile->setLevel( Level_ );
-					Projectile->setTarget( NearestTentacle->getParentEntity() );
-
-					// Time to spawn!
-					Timer_ -= CalculatedFireRate_;
-				}
+				// Time to spawn!
+				Timer_ -= CalculatedFireRate_;
 			}
 		}
 		break;
