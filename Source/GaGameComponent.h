@@ -70,6 +70,9 @@ private:
 	std::vector< ScnEntity* > StructureTemplates_;
 	ScnEntity* UpgradeMenuTemplate_ = nullptr;
 	ScnEntity* ButtonTemplate_ = nullptr;
+	ScnEntity* UIEntity_ = nullptr;
+
+	MaVec2d UIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
 
 	enum class GameState
 	{
@@ -111,6 +114,7 @@ private:
 	// Input state specific.
 	InputState InputState_ = InputState::IDLE;
 	class GaStructureComponent* SelectedStructure_ = nullptr;
+	size_t SelectedStructureIdx_ = BcErrorCode;
 
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;

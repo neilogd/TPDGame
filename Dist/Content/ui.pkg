@@ -16,10 +16,10 @@
 					"type" : "ScnSpriteComponent",
 					"materialname" : "StructureMaterial",
 					"position" : "0.0, 0.0",
-					"size" : "64.0, 64.0",
-					"centre" : true,
-					"colour" : "0.0, 1.0, 0.0, 1.0",
-					"index" : 1,
+					"size" : "128.0, 128.0",
+					"centre" : false,
+					"colour" : "1.0, 1.0, 1.0, 1.0",
+					"index" : 0,
 					"layer" : 0
 				},
 
@@ -28,7 +28,7 @@
 					"id" : 0,
 					"layer" : -500,
 					"position" : "0.0, 0.0",
-					"size" : "64.0, 64.0"
+					"size" : "128.0, 128.0"
 				}
 			]
 		}

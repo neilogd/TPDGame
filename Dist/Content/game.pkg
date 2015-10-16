@@ -9,7 +9,7 @@
 					"type" : "GaGameComponent",
 					"level" : 0,
 
-					"gamephasetime" : 30.0,
+					"gamephasetime" : 20.0,
 					"structuretemplates" : [
 						"$(ScnEntity:structures.StructureEntity_0)",
 						"$(ScnEntity:structures.StructureEntity_1)",
@@ -18,6 +18,11 @@
 
 					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)",
 					"buttontemplate" : "$(ScnEntity:ui.ButtonEntity)"
+				},
+
+				{
+					"type" : "ScnEntity",
+					"name" : "UIEntity"
 				}
 			]
 		}

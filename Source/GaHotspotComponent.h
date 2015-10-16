@@ -39,6 +39,7 @@ public:
 	GaHotspotComponent( BcU32 ID, BcS32 Layer, MaVec2d Position, MaVec2d Size );
 	virtual ~GaHotspotComponent();
 
+	void setID( BcU32 ID );
 	BcU32 getID() const;
 	MaVec2d getPosition() const;
 	MaVec2d getSize() const;
