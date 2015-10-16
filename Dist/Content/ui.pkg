@@ -1,0 +1,36 @@
+{
+	"resources" : [
+		{
+			"name"		:		"ButtonEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "ScnMaterialComponent",
+					"name" : "StructureMaterial",
+					"material" : "$(ScnMaterial:structures_data.material)",
+					"permutation" : "2d"
+				},
+
+				{
+					"type" : "ScnSpriteComponent",
+					"materialname" : "StructureMaterial",
+					"position" : "0.0, 0.0",
+					"size" : "64.0, 64.0",
+					"centre" : true,
+					"colour" : "0.0, 1.0, 0.0, 1.0",
+					"index" : 1,
+					"layer" : 0
+				},
+
+				{
+					"type" : "GaHotspotComponent",
+					"id" : 0,
+					"layer" : -500,
+					"position" : "0.0, 0.0",
+					"size" : "64.0, 64.0"
+				}
+			]
+		}
+	]
+}

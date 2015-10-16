@@ -16,7 +16,8 @@
 						"$(ScnEntity:structures.StructureEntity_2)"
 					],
 
-					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)"
+					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)",
+					"buttontemplate" : "$(ScnEntity:ui.ButtonEntity)"
 				}
 			]
 		}

@@ -43,6 +43,7 @@ public:
 	const std::vector< class GaStructureComponent* >& getStructures() const;
 	const std::vector< class GaTentacleComponent* >& getTentacles() const;
 
+	void createStructureButtons();
 	void buildStructure( class GaStructureComponent* Structure );
 	void destroyStructure( class GaStructureComponent* Structure );
 
@@ -68,6 +69,7 @@ private:
 	BcF32 GamePhaseTime_ = 30.0f;
 	std::vector< ScnEntity* > StructureTemplates_;
 	ScnEntity* UpgradeMenuTemplate_ = nullptr;
+	ScnEntity* ButtonTemplate_ = nullptr;
 
 	enum class GameState
 	{

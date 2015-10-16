@@ -91,7 +91,8 @@ void GaGameComponent::StaticRegisterClass()
 		new ReField( "Level_", &GaGameComponent::Level_, bcRFF_IMPORTER ),
 		new ReField( "GamePhaseTime_", &GaGameComponent::GamePhaseTime_, bcRFF_IMPORTER ),
 		new ReField( "StructureTemplates_", &GaGameComponent::StructureTemplates_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
-		new ReField( "UpgradeMenuTemplate_", &GaGameComponent::UpgradeMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY )
+		new ReField( "UpgradeMenuTemplate_", &GaGameComponent::UpgradeMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "ButtonTemplate_", &GaGameComponent::ButtonTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 	};
 
 	ReRegisterClass< GaGameComponent, Super >( Fields )
@@ -235,6 +236,13 @@ const std::vector< class GaStructureComponent* >& GaGameComponent::getStructures
 const std::vector< class GaTentacleComponent* >& GaGameComponent::getTentacles() const
 {
 	return Tentacles_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createStructureButtons
+void GaGameComponent::createStructureButtons()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
