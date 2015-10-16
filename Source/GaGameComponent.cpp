@@ -116,11 +116,21 @@ GaGameComponent::~GaGameComponent()
 // onAttach
 void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	OsClient* Client = OsCore::pImpl()->getClient( 0 );
+	MaVec2d Dimensions( Client->getWidth(), Client->getHeight() );
+
 	// Get canvas + font.
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
 	BcAssert( Canvas_ );
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
+
+	// Spawn hotspot for placement area.
+	Parent->attach< GaHotspotComponent >( 
+		BcName::INVALID,
+		1000, -1000,
+		MaVec2d( 0.0f, 0.0f ),
+		Dimensions - MaVec2d( 0.0f, 256.0f ) );
 
 	// Subscribe to hotspot for hover.
 	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,
@@ -159,7 +169,6 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 		} );
 
 	// Spawn tentacle things.
-
 	for( BcF32 X = -480.0f; X <= 480.0f; X += 120.0f )
 	{
 		MaMat4d TransformA;

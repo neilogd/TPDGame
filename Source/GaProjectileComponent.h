@@ -53,6 +53,7 @@ private:
 	BcF32 Acceleration_ = 1024.0f;
 	BcF32 Drag_ = 0.05f;
 	BcF32 Mass_ = 1.0f;
+	MaVec2d Velocity_ = MaVec2d( 0.0f, 0.0f );
 	ScnEntity* Target_ = nullptr;
 
 

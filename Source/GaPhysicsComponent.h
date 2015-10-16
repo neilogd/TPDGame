@@ -98,6 +98,7 @@ public:
 
 	void setup( std::vector< GaPhysicsPointMass >&& PointMasses, std::vector< GaPhysicsConstraint >&& Constraints );
 
+	const GaPhysicsPointMass& getPointMass( size_t Idx ) const { return PointMasses_[ Idx ]; }
 	const MaVec2d& getPointMassPosition( size_t Idx ) const { return PointMasses_[ Idx ].CurrPosition_; }
 	void setPointMassPosition( size_t Idx, const MaVec2d& Position ) { PointMasses_[ Idx ].CurrPosition_ = Position; }
 

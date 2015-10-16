@@ -73,12 +73,26 @@ void GaProjectileProcessor::update( const ScnComponentList& Components )
 		auto* Component = static_cast< GaProjectileComponent* >( InComponent.get() );
 		
 		const auto TargetPos = Component->Target_->getWorldPosition().xy();
-		const auto CurrentPos = Component->Physics_->getPointMassPosition( 0 );
+		const auto& PointMass = Component->Physics_->getPointMass( 0 );
+		const auto CurrPos = PointMass.CurrPosition_;
+		const auto PrevPos = PointMass.PrevPosition_;
 
-		auto TotalVector = ( TargetPos - CurrentPos );
+		const auto Vel = ( CurrPos - PrevPos ) / Tick;
+		Component->Velocity_ = Component->Velocity_ * 0.9f + Vel * 0.1f;
+		if( Component->Velocity_.magnitudeSquared() > 0.1f )
+		{
+			BcF32 Angle = -BcAtan2( Component->Velocity_.y(), Component->Velocity_.x() );
+			auto Sprite = Component->getParentEntity()->getComponentByType< ScnSpriteComponent >();
+			Sprite->setRotation( Angle );
+		}
+
+
+		auto TotalVector = ( TargetPos - CurrPos );
 		auto TotalVectorMagnitude = TotalVector.magnitude();
 		auto Vector = ( TotalVector / TotalVectorMagnitude ) * Component->Acceleration_;
 		Component->Physics_->setPointMassAcceleration( 0, Vector );
+
+		Component->getParentEntity()->setLocalPosition( MaVec3d( CurrPos, 0.0f ) );
 
 		if( TotalVectorMagnitude < Component->DamageDistance_ )
 		{
