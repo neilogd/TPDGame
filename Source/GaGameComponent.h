@@ -55,6 +55,8 @@ public:
 	void incScore( BcS64 NoofPoints );
 	BcBool spendResources( BcS64 NoofResources );
 
+	MaVec2d getStructurePlacement( MaVec2d Position );
+
 private:
 	void update( BcF32 Tick );
 	void advanceGameTimer( BcF32 Tick );

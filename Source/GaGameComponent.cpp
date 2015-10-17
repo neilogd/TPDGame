@@ -134,8 +134,8 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	Parent->attach< GaHotspotComponent >( 
 		BcName::INVALID,
 		1000, -1000,
-		MaVec2d( 0.0f, 0.0f ),
-		Dimensions - MaVec2d( 0.0f, 256.0f ) );
+		MaVec2d( 64.0f, 64.0f ),
+		Dimensions - MaVec2d( 128.0f, 256.0f ) );
 
 	// Create buttons.
 	createStructureButtons();
@@ -151,7 +151,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 				if( SelectedStructure_ )
 				{
 					SelectedStructure_->getParentEntity()->setWorldPosition( 
-						MaVec3d( Event.Position_, 0.0f ) );
+						MaVec3d( getStructurePlacement( Event.Position_ ), 0.0f ) );
 				}
 			}
 			return evtRET_PASS;
@@ -167,7 +167,7 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 				if( SelectedStructure_ )
 				{
 					SelectedStructure_->getParentEntity()->setWorldPosition( 
-						MaVec3d( Event.Position_, 0.0f ) );
+						MaVec3d( getStructurePlacement( Event.Position_ ), 0.0f ) );
 					buildStructure( SelectedStructure_ );
 					SelectedStructure_ = nullptr;
 					setInputState( InputState::IDLE );
@@ -451,6 +451,17 @@ BcBool GaGameComponent::spendResources( BcS64 NoofResources )
 		return BcTrue;
 	}
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getStructurePlacement
+MaVec2d GaGameComponent::getStructurePlacement( MaVec2d Position )
+{
+	const auto Spacing = 128.0f;
+	const auto HalfSpacing = Spacing * 0.5f;
+	return MaVec2d(
+		std::roundf( Position.x() / Spacing ) * Spacing,
+		std::roundf( Position.y() / Spacing ) * Spacing );
 }
 
 //////////////////////////////////////////////////////////////////////////
