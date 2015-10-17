@@ -1,0 +1,90 @@
+{
+	"resources" : [
+	{
+			"type"			: "ScnTexture",
+			"name"			: "tentacle_base_texture",
+
+			"source"		: "Content/Textures/tentacle_base.png",
+
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "tentacle_shader",
+
+			"sources" 		: {
+				"GLSL_330" : "Content/Engine/tentacle.glsl",
+				"GLSL_ES_100" : "Content/Engine/tentacle.glsl"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Content/Engine/tentacle.glsl"
+				}
+			},
+
+			"includepermutations" : [
+				"MESH_STATIC_2D",
+				"PASS_MAIN",
+				"LIGHTING_NONE"
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelTexturedMain"
+			}
+		},
+
+		{
+			"type"			: "ScnMaterial",
+			"name"			: "tentacle_material",
+
+			// Shader
+			"shader"		: "$(ScnShader:this.tentacle_shader)",
+
+			// Textures
+			"textures"		: {
+				"aDiffuseTex"	: "$(ScnTexture:this.tentacle_base_texture)"
+			},
+
+			// Samplers
+			"samplers"		: {
+				"aDiffuseTex"	: {
+					"addressu" : "repeat",
+					"addressv" : "repeat",
+					"minfilter" : "linear",
+					"magfilter" : "linear"
+				}
+			},
+
+			// New render state.
+			"renderstate" : {
+				"blendstate" : {
+					"rendertarget" : [
+						{
+							"enable" : true,
+							"srcblend" : "srcalpha",
+							"destblend" : "invsrcalpha",
+							"blendop" : "add",
+							"srcblendalpha" : "srcalpha",
+							"destblendalpha" : "invsrcalpha",
+							"blendopalpha" : "add",
+							"writemask" : 15
+						}
+					]
+				},
+
+				"depthstencilstate" : {
+					"depthtestenable" : false,
+					"depthwriteenable" : false
+				},
+
+				"rasteriserstate" : {
+					"fillmode" : "solid",
+					"cullmode" : "none"
+				}
+			}
+		}
+	]
+}

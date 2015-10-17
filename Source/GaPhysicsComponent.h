@@ -82,6 +82,8 @@ private:
 	BcF32 TickRate_ = 1.0f / 120.0f;
 	BcU32 Iterations_ = 1;
 	BcF64 TimeTaken_ = 0.0f;
+
+	bool DebugDraw_ = false;
 	
 };
 

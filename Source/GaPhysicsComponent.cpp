@@ -151,6 +151,8 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 			}
 		}
 
+		ImGui::Checkbox( "Physics Debug Draw", &DebugDraw_ );
+
 		ImGui::Text( "Point mases: %u",  NoofPointMasses );
 		ImGui::Text( "Constraints: %u",  NoofConstraints );
 		ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
@@ -165,43 +167,46 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 void GaPhysicsProcessor::debugDraw( const ScnComponentList& Components )
 {			
 #if !PSY_PRODUCTION
-	ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
-	ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
-	if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
+	if( DebugDraw_ )
 	{
-		auto DrawList = ImGui::GetWindowDrawList();
-		DrawList->PushClipRectFullScreen();
+		ImGui::SetNextWindowPos( MaVec2d( -64.0f, -64.0f ), ImGuiSetCond_Always );
+		ImGui::SetNextWindowSize( MaVec2d( 0.0f, 0.0f ) );
+		if( ImGui::Begin( "", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings ) )
+		{
+			auto DrawList = ImGui::GetWindowDrawList();
+			DrawList->PushClipRectFullScreen();
 
-		for( auto InComponent : Components )
-		{		
-			BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
-			auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
+			for( auto InComponent : Components )
+			{		
+				BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
+				auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
 			
-			// Draw point masses.
-			for(auto& PointMass : Component->PointMasses_)
-			{
-				if( PointMass.InvMass_ > 0.0f )
+				// Draw point masses.
+				for(auto& PointMass : Component->PointMasses_)
 				{
-					DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff00ff00 );
+					if( PointMass.InvMass_ > 0.0f )
+					{
+						DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff00ff00 );
+					}
+					else
+					{
+						DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff0000ff );
+					}
 				}
-				else
+
+				// Draw constraints.
+				for(auto& Constraint : Component->Constraints_)
 				{
-					DrawList->AddCircle( PointMass.CurrPosition_, 4.0f, 0xff0000ff );
+					RsColour Colour( 1.0f, 1.0f, 1.0f, Constraint.Rigidity_ );
+					auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
+					auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
+					DrawList->AddLine( PointMassA.CurrPosition_, PointMassB.CurrPosition_, Colour.asABGR(), 2.0f );
 				}
 			}
 
-			// Draw constraints.
-			for(auto& Constraint : Component->Constraints_)
-			{
-				RsColour Colour( 1.0f, 1.0f, 1.0f, Constraint.Rigidity_ );
-				auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
-				auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
-				DrawList->AddLine( PointMassA.CurrPosition_, PointMassB.CurrPosition_, Colour.asABGR(), 2.0f );
-			}
+			DrawList->PopClipRect();
+			ImGui::End();
 		}
-
-		DrawList->PopClipRect();
-		ImGui::End();
 	}
 #endif // !PSY_PRODUCTION
 }

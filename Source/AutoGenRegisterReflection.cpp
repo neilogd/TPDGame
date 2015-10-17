@@ -220,6 +220,7 @@ void AutoGenRegisterReflection()
 	GaProjectileComponent::StaticRegisterClass();
 	GaStructureProcessor::StaticRegisterClass();
 	GaStructureComponent::StaticRegisterClass();
+	GaTentacleUniformBlockData::StaticRegisterClass();
 	GaTentacleProcessor::StaticRegisterClass();
 	GaTentacleComponent::StaticRegisterClass();
 }

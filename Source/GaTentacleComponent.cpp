@@ -12,9 +12,26 @@
 #include "System/Os/OsCore.h"
 
 #include "System/Scene/ScnEntity.h"
+#include "System/Scene/Rendering/ScnCanvasComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "Base/BcRandom.h"
 
+//////////////////////////////////////////////////////////////////////////
+// GaTentacleUniformBlockData
+REFLECTION_DEFINE_BASIC( GaTentacleUniformBlockData );
+
+void GaTentacleUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "TentacleSegments_", &GaTentacleUniformBlockData::TentacleSegments_ ),
+		new ReField( "TentacleClipMatrix_", &GaTentacleUniformBlockData::TentacleClipMatrix_ ),
+	};
+		
+	auto& Class = ReRegisterClass< GaTentacleUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -144,8 +161,26 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 				
 			Component->getParentEntity()->setLocalPosition( MaVec3d( HeadPosition, 0.0f ) );
 
-			// TODO: Set end points to a new location too. Move them at ~1/4-1/2 the rate to prevent the
-			// tentacle bunching up so badly.
+			// Setup tentacle uniforms.
+			// TODO: Get clip matrix better place perhaps? Maybe even just resort to using the view's clip matrix?
+			memset( &Component->UniformBlock_, 0, sizeof( Component->UniformBlock_ ) );
+			Component->UniformBlock_.TentacleClipMatrix_ = Component->Canvas_->getMatrix();
+			Component->UniformBlock_.TentacleUVScale_ = MaVec4d( 1.0f, 1.0f, 1.0f, 1.0f );
+			for( BcU32 Idx = 0; Idx < Component->NoofSegments_; ++Idx )
+			{
+				auto & Segment = Component->UniformBlock_.TentacleSegments_[ Idx ];
+				const auto & PointMassL = Physics->getPointMass( ( Idx * 2 ) + 1 ).CurrPosition_;
+				const auto & PointMassR = Physics->getPointMass( ( Idx * 2 ) + 2 ).CurrPosition_;
+				const auto Position = ( PointMassL + PointMassR ) * 0.5f;
+				const auto Tangent = ( PointMassR - PointMassL );
+				Segment = MaVec4d( Position.x(), Position.y(), Tangent.x(), Tangent.y() );
+			}
+
+			RsCore::pImpl()->updateBuffer( Component->UniformBuffer_.get(), 0, 0, RsResourceUpdateFlags::ASYNC, 
+				[ UniformBlock = Component->UniformBlock_ ]( class RsBuffer*, const RsBufferLock& Lock )
+				{
+					memcpy( Lock.Buffer_, &UniformBlock, sizeof( UniformBlock ) );
+				} );
 		}
 	}
 	else
@@ -162,6 +197,8 @@ void GaTentacleComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "Material_", &GaTentacleComponent::Material_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+
 		new ReField( "MoveSpeed_", &GaTentacleComponent::MoveSpeed_, bcRFF_IMPORTER ),
 		new ReField( "MoveSpeedMultiplier_", &GaTentacleComponent::MoveSpeedMultiplier_, bcRFF_IMPORTER ),
 		new ReField( "HeadDamping_", &GaTentacleComponent::HeadDamping_, bcRFF_IMPORTER ),
@@ -202,13 +239,13 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 
 	// Head point used to nagivate.
 	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
+	//Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
 
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), HeadDamping_, 1.0f / 1.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 1, 3, -1.0f, 1.0f ) );
-	size_t PointOffset = 2;
-	MaVec2d Offset( 0.0f, SectionHeight );
+	//PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), HeadDamping_, 1.0f / 1.0f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, -1.0f, HeadConstraintRigidity_ ) );
+	Constraints.emplace_back( GaPhysicsConstraint( 0, 2, -1.0f, HeadConstraintRigidity_ ) );
+	size_t PointOffset = 1;
+	MaVec2d Offset( 0.0f, 0.0f );
 
 	const BcF32 Horizontal = Width;
 	const BcF32 Vertical = SectionHeight;
@@ -268,9 +305,6 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics );
 	Physics->setup( std::move( PointMasses ), std::move( Constraints ) );
-
-	// Add noise,.
-	//addPhysicsNoise();
 }
 
 
@@ -380,6 +414,8 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Game_ = getComponentAnyParentByType< GaGameComponent >();
 	BcAssert( Game_ );
+	Canvas_ = getComponentAnyParentByType< ScnCanvasComponent >();
+	BcAssert( Canvas_ );
 
 	Game_->getParentEntity()->subscribe( gaEVT_GAME_BEGIN_BUILD_PHASE, this, 
 		[ this ]( EvtID, const EvtBaseEvent & Event )
@@ -409,12 +445,70 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
-	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 30 );
+	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, NoofSegments_ );
 	targetHome();
 	calculateLevelStats( 1 );
 
 	TimerRandMult_ = BcRandom::Global.randRange( 0.8f, 1.2f );
 	TimerRandOffset_ = BcRandom::Global.randRange( 0.0f, BcPIMUL2 );
+
+
+	// Create render resources.
+	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 
+		BcName::INVALID,
+		Material_, ScnShaderPermutationFlags::MESH_STATIC_2D );
+	
+	VertexDecl_.reset( RsCore::pImpl()->createVertexDeclaration(
+		RsVertexDeclarationDesc( 2 )
+			.addElement( RsVertexElement( 0, 0, 4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
+			.addElement( RsVertexElement( 0, 16, 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ) ) );
+
+	VertexBuffer_.reset( RsCore::pImpl()->createBuffer(
+		RsBufferDesc( 
+			RsBufferType::VERTEX,
+			RsResourceCreationFlags::STATIC,
+			sizeof( Vertex ) * NoofSegments_ * 4 ) ) );
+			
+	UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
+		RsBufferDesc( 
+			RsBufferType::UNIFORM,
+			RsResourceCreationFlags::STREAM,
+			sizeof( UniformBlock_ ) ) ) );
+
+	MaterialComponent_->setUniformBlock( "GaTentacleUniformBlockData", UniformBuffer_.get() );
+
+	RsCore::pImpl()->updateBuffer( VertexBuffer_.get(), 0, 0, RsResourceUpdateFlags::ASYNC, 
+		[ NoofSegments = NoofSegments_ ]( class RsBuffer*, const RsBufferLock& Lock )
+		{
+			auto Vertices = static_cast< Vertex* >( Lock.Buffer_ );
+			Vertex SrcVertices[] = 
+			{
+				{ MaVec4d( -1.0f, 0.0f, 1.0f, 0.0f ), MaVec2d( 0.0f, 0.0f ) },
+				{ MaVec4d(  1.0f, 0.0f, 1.0f, 0.0f ), MaVec2d( 1.0f, 0.0f ) },
+				{ MaVec4d( -1.0f, 1.0f, 1.0f, 0.0f ), MaVec2d( 0.0f, 1.0f ) },
+				{ MaVec4d(  1.0f, 1.0f, 1.0f, 0.0f ), MaVec2d( 1.0f, 1.0f ) },
+			};
+
+			for( BcU32 IdxA = 0; IdxA < NoofSegments; ++IdxA )
+			{
+				Vertices[0] = SrcVertices[0];
+				Vertices[1] = SrcVertices[1];
+
+				Vertices[0].Position_.w( IdxA );
+				Vertices[1].Position_.w( IdxA );
+
+				SrcVertices[0].Position_ = SrcVertices[0].Position_ * MaVec4d( 1.0f, 1.0f, 1.05f, 1.0f );
+				SrcVertices[1].Position_ = SrcVertices[1].Position_ * MaVec4d( 1.0f, 1.0f, 1.05f, 1.0f );
+
+				for( BcU32 IdxB = 0; IdxB < 2; ++IdxB )
+				{
+					SrcVertices[ IdxB ].Position_ += MaVec4d( 0.0f, 1.0f, 0.0f, 0.0f );
+					SrcVertices[ IdxB ].TexCoord_ += MaVec2d( 0.0f, 1.0f );
+				}
+
+				Vertices += 2;
+			}
+		} );
 
 	Super::onAttach( Parent );
 }
@@ -423,6 +517,11 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	RenderFence_.wait();
+	VertexDecl_.reset();
+	VertexBuffer_.reset();
+	UniformBuffer_.reset();
+
 	if( Game_ )
 	{
 		if( Game_->getParentEntity() )
@@ -438,6 +537,35 @@ void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 
 	getParentEntity()->unsubscribeAll( this );
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// render
+void GaTentacleComponent::render( ScnRenderContext & RenderContext )
+{
+	RsRenderSort Sort = RenderContext.Sort_;
+	if( MaterialComponent_ )
+	{
+		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
+		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
+
+		RenderFence_.increment();
+		RenderContext.pFrame_->queueRenderNode( Sort,
+			[ this ]( RsContext* Context )
+			{
+				Context->setVertexDeclaration( VertexDecl_.get() );
+				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( Vertex ) );
+				Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, NoofSegments_ * 2 );
+				RenderFence_.decrement();
+			} );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+MaAABB GaTentacleComponent::getAABB() const
+{
+	return MaAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////

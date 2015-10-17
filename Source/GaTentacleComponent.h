@@ -1,8 +1,25 @@
 #pragma once
 
-#include "System/Scene/ScnComponent.h"
+#include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 	
+//////////////////////////////////////////////////////////////////////////
+// GaTentacleUniformBlockData
+struct GaTentacleUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( GaTentacleUniformBlockData );
+	GaTentacleUniformBlockData(){};
+
+	static const BcU32 MAX_SEGMENTS = 64;
+
+	/// xy = Position, zw = Tangent.
+	MaVec4d TentacleSegments_[ MAX_SEGMENTS ];
+	/// Tentacle clip matrix.
+	MaMat4d TentacleClipMatrix_;
+	/// UV scale.
+	MaVec4d TentacleUVScale_;
+};
+
 //////////////////////////////////////////////////////////////////////////
 // GaTentacleProcessor
 class GaTentacleProcessor:
@@ -27,11 +44,11 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // GaTentacleComponent
 class GaTentacleComponent:
-	public ScnComponent,
+	public ScnRenderableComponent,
 	public ReIObjectNotify
 {
 public:
-	REFLECTION_DECLARE_DERIVED( GaTentacleComponent, ScnComponent );
+	REFLECTION_DECLARE_DERIVED( GaTentacleComponent, ScnRenderableComponent );
 
 	GaTentacleComponent();
 	virtual ~GaTentacleComponent();
@@ -48,11 +65,18 @@ public:
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-	
+
+	void render( ScnRenderContext & RenderContext ) override;
+	MaAABB getAABB() const override;
+		
 	void onObjectDeleted( class ReObject* Object ) override;
+
+
 	
 private:
 	friend class GaTentacleProcessor;
+
+	class ScnMaterial* Material_ = nullptr;
 
 	BcF32 MoveSpeed_ = 64.0f;
 	BcF32 MoveSpeedMultiplier_ = 0.1f;
@@ -75,9 +99,26 @@ private:
 	MaVec2d SoftHeadPosition_ = MaVec2d( 0.0f, 0.0f );
 	MaVec2d TailPosition_ = MaVec2d( 0.0f, 0.0f );
 
+	BcU32 NoofSegments_ = 30;
+
 	class GaGameComponent* Game_ = nullptr;
+	class ScnCanvasComponent* Canvas_ = nullptr;
 
 	// TODO: Replace with something more predictable, like a spline.
 	class GaStructureComponent* TargetStructure_ = nullptr;
 	MaVec2d TargetPosition_;
+
+	// Rendering.
+	struct Vertex
+	{
+		MaVec4d Position_;
+		MaVec2d TexCoord_;
+	};
+
+	class ScnMaterialComponent* MaterialComponent_ = nullptr;
+	RsVertexDeclarationUPtr VertexDecl_;
+	RsBufferUPtr VertexBuffer_;
+	RsBufferUPtr UniformBuffer_;
+	GaTentacleUniformBlockData UniformBlock_;
+	SysFence RenderFence_;
 };
