@@ -127,8 +127,8 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
 
-	UIEntity_ = Parent->getComponentByType< ScnEntity >( "UIEntity" );
-	BcAssert( UIEntity_ );
+	BuildUIEntity_ = Parent->getComponentByType< ScnEntity >( "UIEntity" );
+	BcAssert( BuildUIEntity_ );
 
 	// Spawn hotspot for placement area.
 	Parent->attach< GaHotspotComponent >( 
@@ -270,7 +270,7 @@ void GaGameComponent::createStructureButtons()
 			ScnEntitySpawnParams(
 				BcName::INVALID,
 				ButtonTemplate_,
-				Transform, UIEntity_ ) );
+				Transform, BuildUIEntity_ ) );
 		BcAssert( ButtonEntity );
 		
 		// Subscribe to event on button entity.
@@ -467,7 +467,7 @@ void GaGameComponent::setGameState( GameState GameState )
 		case GaGameComponent::GameState::BUILD_PHASE:
 			Level_++;
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
-			UIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
+			BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
 			break;
 		case GaGameComponent::GameState::DEFEND_PHASE:
 			if( CurrentModal_ )
@@ -476,7 +476,7 @@ void GaGameComponent::setGameState( GameState GameState )
 				CurrentModal_ = nullptr;
 			}
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
-			UIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
+			BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
 			break;
 		}
 	}
@@ -523,9 +523,9 @@ void GaGameComponent::update( BcF32 Tick )
 	}
 	
 	// Move UI.
-	auto UIEntityPosition = UIEntity_->getLocalPosition().xy();
-	UIEntityPosition = UIEntityPosition * 0.9f + UIEntityTarget_ * 0.1f;
-	UIEntity_->setLocalPosition( MaVec3d( UIEntityPosition, 0.0f ) );
+	auto UIEntityPosition = BuildUIEntity_->getLocalPosition().xy();
+	UIEntityPosition = UIEntityPosition * 0.9f + BuildUIEntityTarget_ * 0.1f;
+	BuildUIEntity_->setLocalPosition( MaVec3d( UIEntityPosition, 0.0f ) );
 
 #if !PSY_PRODUCTION
 	if( ImGui::Begin( "Game Debug" ) )

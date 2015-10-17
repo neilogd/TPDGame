@@ -20,6 +20,7 @@ public:
 	void update( const ScnComponentList& Components );
 
 private:
+	BcF32 Timer_ = 0.0f;
 	
 };
 
@@ -36,8 +37,6 @@ public:
 	virtual ~GaTentacleComponent();
 
 	void setupComplexTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
-	void setupDiamondTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
-	void setupSimpleTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections );
 	void addPhysicsNoise();
 
 	void calculateLevelStats( BcU32 Level );
@@ -60,7 +59,21 @@ private:
 	BcF32 HeadDamping_ = 0.5f;
 	BcF32 HeadConstraintRigidity_ = 0.5f;
 
+	BcF32 VerticalRigidity_ = 0.8f;
+	BcF32 HorizontalRigidity_ = 0.8f;
+	BcF32 DiagonalRigidity_ = 0.4f;
+
 	BcF32 CalculatedMoveSpeed_ = 0.0f;
+
+	BcF32 HeadTailDistance_ = 0.0f;
+
+	BcF32 HeadSwaySmoothed_ = 0.0f;
+
+	BcF32 TimerRandMult_ = 1.0f;
+	BcF32 TimerRandOffset_ = 1.0f;
+
+	MaVec2d SoftHeadPosition_ = MaVec2d( 0.0f, 0.0f );
+	MaVec2d TailPosition_ = MaVec2d( 0.0f, 0.0f );
 
 	class GaGameComponent* Game_ = nullptr;
 

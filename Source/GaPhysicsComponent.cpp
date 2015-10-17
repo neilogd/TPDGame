@@ -66,6 +66,7 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 	const BcF32 Tick = TickRate_;
 	const BcF32 TickSquared = Tick * Tick;
 
+	//return;
 	TickAccumulator_ += SysKernel::pImpl()->getFrameTime();
 	while( TickAccumulator_ > Tick )
 	{

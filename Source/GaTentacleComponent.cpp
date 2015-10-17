@@ -13,6 +13,8 @@
 
 #include "System/Scene/ScnEntity.h"
 
+#include "Base/BcRandom.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -64,7 +66,6 @@ void GaTentacleProcessor::shutdown()
 void GaTentacleProcessor::update( const ScnComponentList& Components )
 {
 	const BcF32 Tick = SysKernel::pImpl()->getFrameTime();
-	static BcF32 Timer = 0.0f;
 	if( Components.size() > 0 )
 	{
 		// Grab game component.
@@ -74,7 +75,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 		const auto& Structures = Game->getStructures();
 	
 		// Update each tentacle.
-		Timer += Tick * 0.25f;
+		Timer_ += Tick;
 		for( auto InComponent : Components )
 		{
 			BcAssert( InComponent->isTypeOf< GaTentacleComponent >() );
@@ -85,12 +86,38 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			if( Component->TargetStructure_ != nullptr )
 			{
 				Component->TargetPosition_ = Component->TargetStructure_->getParentEntity()->getWorldPosition().xy();
+				Component->TargetPosition_ -= MaVec2d( 0.0f, 32.0f );
 			}
 
-			const BcF32 MoveSpeed = Component->CalculatedMoveSpeed_ * Tick;
-			auto ComponentPos = Component->getParentEntity()->getWorldPosition().xy();
-			auto TargetVec = Component->TargetPosition_ - ComponentPos;
-			if( TargetVec.magnitude() < 32.0f )
+			const auto MoveSpeed = Component->CalculatedMoveSpeed_ * Tick;
+			const auto TargetPosition = Component->TargetPosition_;
+
+			auto ComponentPos = Component->SoftHeadPosition_;
+			auto TargetVec = TargetPosition - ComponentPos;
+			auto TargetDistance = TargetVec.magnitude();
+
+			// Calculate sway based on prelim distance.
+			const auto Timer = ( Timer_ * Component->TimerRandMult_ ) + Component->TimerRandOffset_;
+			const auto MaxSway = 64.0f;
+			const auto HeadSway = Component->TargetStructure_ ? MaxSway / 2.0f : MaxSway / 8.0f;
+			const auto DistanceDivHeadSwayClamped = BcClamp( TargetDistance / HeadSway, 0.0f, 1.0f );
+			const auto SmoothHeadSwayMult = BcSmoothStep( DistanceDivHeadSwayClamped );
+			Component->HeadSwaySmoothed_ = ( Component->HeadSwaySmoothed_ * 0.99f ) + ( HeadSway * SmoothHeadSwayMult * 0.01f );
+			const auto SwayOffset = MaVec2d( BcCos( Timer ), BcSin( Timer  ) ) * Component->HeadSwaySmoothed_;
+
+			// Recalc target vec + distance to include sway.
+			TargetVec = TargetPosition - ( ComponentPos + SwayOffset );
+			TargetDistance = TargetVec.magnitude();
+
+			/// Clamp move speed.
+			if( TargetVec.magnitude() > MoveSpeed )
+			{
+				TargetVec = TargetVec.normal() * MoveSpeed;
+			}
+
+			// Do the attacky thing.
+			// TODO: Make tentacle whack it hard.
+			if( TargetDistance < 32.0f )
 			{
 				if( Component->TargetStructure_ )
 				{
@@ -99,16 +126,23 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 				}
 			}
 
-			if( TargetVec.magnitude() > MoveSpeed )
-			{
-				TargetVec = TargetVec.normal() * MoveSpeed;
-			}
-
 			ComponentPos += TargetVec;
-			Component->getParentEntity()->setLocalPosition( MaVec3d( ComponentPos, 0.0f ) );
-			
-			// Set first point mass to world position. Should be a soft constraint to make it move smoothly.
-			Physics->setPointMassPosition( 0, Component->getParentEntity()->getWorldPosition().xy() );
+			Component->SoftHeadPosition_ = ComponentPos;
+
+
+			// Set first + last point mass to world position. Should be a soft constraint to make it move smoothly.
+
+			const auto LastIdx = Physics->getNoofPointMasses() - 1;
+			const auto HeadPosition = Component->SoftHeadPosition_ + SwayOffset;
+			const auto DistanceMult = 1.0f;//( 800.0f / HeadPosition.y() );
+			const auto TailPosition = Physics->getPointMassPosition( LastIdx );
+			Physics->setPointMassPosition( 0, HeadPosition );
+			Physics->setPointMassPosition( LastIdx, 
+				MaVec2d( 
+					Component->TailPosition_.x() + ( BcSin( Timer * 2.0f ) * MaxSway ), 
+					HeadPosition.y() + Component->HeadTailDistance_ * DistanceMult ) );
+				
+			Component->getParentEntity()->setLocalPosition( MaVec3d( HeadPosition, 0.0f ) );
 
 			// TODO: Set end points to a new location too. Move them at ~1/4-1/2 the rate to prevent the
 			// tentacle bunching up so badly.
@@ -116,7 +150,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 	}
 	else
 	{
-		Timer = 0.0f;
+		Timer_  = 0.0f;
 	}
 }
 
@@ -132,6 +166,10 @@ void GaTentacleComponent::StaticRegisterClass()
 		new ReField( "MoveSpeedMultiplier_", &GaTentacleComponent::MoveSpeedMultiplier_, bcRFF_IMPORTER ),
 		new ReField( "HeadDamping_", &GaTentacleComponent::HeadDamping_, bcRFF_IMPORTER ),
 		new ReField( "HeadConstraintRigidity_", &GaTentacleComponent::HeadConstraintRigidity_, bcRFF_IMPORTER ),
+
+		new ReField( "VerticalRigidity_", &GaTentacleComponent::VerticalRigidity_, bcRFF_IMPORTER ),
+		new ReField( "HorizontalRigidity_", &GaTentacleComponent::HorizontalRigidity_, bcRFF_IMPORTER ),
+		new ReField( "DiagonalRigidity_", &GaTentacleComponent::DiagonalRigidity_, bcRFF_IMPORTER ),
 	};
 
 	ReRegisterClass< GaTentacleComponent, Super >( Fields )
@@ -171,26 +209,45 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 	Constraints.emplace_back( GaPhysicsConstraint( 1, 3, -1.0f, 1.0f ) );
 	size_t PointOffset = 2;
 	MaVec2d Offset( 0.0f, SectionHeight );
+
+	const BcF32 Horizontal = Width;
+	const BcF32 Vertical = SectionHeight;
+	const BcF32 Diagonal = std::sqrtf( ( Horizontal * Horizontal ) + ( Vertical * Vertical ) );
+
 	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
 	{
 		PointMasses.push_back( GaPhysicsPointMass( MaVec2d( -HalfWidth, 0.0f ) + Offset, 0.1f, 1.0f / 1.0f ) );
 		PointMasses.push_back( GaPhysicsPointMass( MaVec2d(  HalfWidth, 0.0f ) + Offset, 0.1f, 1.0f / 1.0f ) );
 
-		Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, -1.0f, 1.0f ) );
+		Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, Horizontal, HorizontalRigidity_ ) );
 
-		Offset += MaVec2d( 0.0f, SectionHeight );
+		// Only advance half the distance.
+		Offset += MaVec2d( 0.0f, Vertical * 0.9f );
+
+		const BcF32 Rate = ( BcPIMUL2 / static_cast< BcF32 >( NoofSections ) );
+		const BcF32 Mult = Horizontal * 4.0f;
+		Offset.x( BcSin( static_cast< BcF32 >( Idx ) * Rate ) * Mult );
 
 		// Link to next section.
 		if( Idx < ( NoofSections - 1 ) )
 		{
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 2, -1.0f, 1.0f ) );
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 3, -1.0f, 1.0f ) );
+			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 2, Vertical, VerticalRigidity_ ) );
+			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 3, Vertical, VerticalRigidity_) );
 
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 2, -1.0f, 0.5f ) );
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 3, -1.0f, 0.5f ) );
+			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 2, Diagonal, DiagonalRigidity_ ) );
+			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 3, Diagonal, DiagonalRigidity_ ) );
 			PointOffset += 2;
 		}
 	}
+
+	HeadTailDistance_ = Offset.y();
+
+
+	// Add last point to move on the Y axis with the head.
+	PointMasses.push_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ) + Offset, 1.0f, 0.0f ) );
+
+	Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 2, Diagonal, 0.8f ) );
+	Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 2, Diagonal, 0.8f ) );
 
 	for( auto& PointMass : PointMasses )
 	{
@@ -198,132 +255,24 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 		PointMass.PrevPosition_ += RootPosition;
 		PointMass.Acceleration_ = MaVec2d( 0.0f, 0.0f );
 	}
-
+	
 	// Pin the end.
-	PointMasses[ PointMasses.size() - 1 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 1 ].DampingFactor_= 1.0f;
+	const auto LastIdx = PointMasses.size() - 1;
+	PointMasses[ LastIdx ].InvMass_ = 0.0f;
+	PointMasses[ LastIdx ].DampingFactor_= 1.0f;
+
+
+	SoftHeadPosition_ = RootPosition;
+	TailPosition_ = PointMasses[ LastIdx ].CurrPosition_;
 
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics );
 	Physics->setup( std::move( PointMasses ), std::move( Constraints ) );
+
+	// Add noise,.
+	//addPhysicsNoise();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// setupDiamondTopology
-void GaTentacleComponent::setupDiamondTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections )
-{
-	// Setup physics.
-	std::vector< GaPhysicsPointMass > PointMasses;
-	std::vector< GaPhysicsConstraint > Constraints;
-
-	const BcF32 HalfWidth = Width * 0.5f;
-	const BcF32 HalfSectionHeight = SectionHeight * 0.5f;
-
-	// Head point for moving it round.
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
-
-	// Head point used to nagivate.
-	size_t PointOffset = 1;
-	MaVec2d Offset( 0.0f, SectionHeight );
-	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
-	{
-		PointMasses.push_back( GaPhysicsPointMass( MaVec2d(  0.0f, 0.0f ) + Offset, 0.1f, 1.0f / 1.0f ) );
-		PointMasses.push_back( GaPhysicsPointMass( MaVec2d( -HalfWidth, HalfSectionHeight ) + Offset, 0.1f, 1.0f / 1.0f ) );
-		PointMasses.push_back( GaPhysicsPointMass( MaVec2d(  HalfWidth, HalfSectionHeight ) + Offset, 0.1f, 1.0f / 1.0f ) );
-
-		Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, -1.0f, 1.0f ) );
-		Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 2, -1.0f, 1.0f ) );
-		Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 2, -1.0f, 1.0f ) );
-		Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 3, -1.0f, 1.0f ) );
-
-		Offset += MaVec2d( 0.0f, SectionHeight );
-
-		// Link to next section.
-		if( Idx < ( NoofSections - 2 ) )
-		{
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 3, -1.0f, 1.0f ) );
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 2, PointOffset + 3, -1.0f, 1.0f ) );
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 1, PointOffset + 4, -1.0f, 0.9f ) );
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset + 2, PointOffset + 5, -1.0f, 0.9f ) );
-			PointOffset += 3;
-		}
-	}
-
-	for( auto& PointMass : PointMasses )
-	{
-		PointMass.CurrPosition_ += RootPosition;
-		PointMass.PrevPosition_ += RootPosition;
-		PointMass.Acceleration_ = MaVec2d( 0.0f, 100.0f );
-	}
-	PointMasses[0].Acceleration_ = MaVec2d( 0.0f, 0.0f );
-
-	// Pin the end.
-	PointMasses[ PointMasses.size() - 5 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 4 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 3 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 2 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 1 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 5 ].DampingFactor_ = 1.0f;
-	PointMasses[ PointMasses.size() - 4 ].DampingFactor_ = 1.0f;
-	PointMasses[ PointMasses.size() - 3 ].DampingFactor_ = 1.0f;
-	PointMasses[ PointMasses.size() - 2 ].DampingFactor_ = 1.0f;
-	PointMasses[ PointMasses.size() - 1 ].DampingFactor_= 1.0f;
-
-	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
-	Physics->setup( std::move( PointMasses ), std::move( Constraints ) );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setupSimpleTopology
-void GaTentacleComponent::setupSimpleTopology( MaVec2d RootPosition, BcF32 Width, BcF32 SectionHeight, BcU32 NoofSections )
-{
-	// Setup physics.
-	std::vector< GaPhysicsPointMass > PointMasses;
-	std::vector< GaPhysicsConstraint > Constraints;
-
-	// Head point used to nagivate.
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), 1.0f, 0.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, 0.0f, HeadConstraintRigidity_ ) );
-
-	PointMasses.emplace_back( GaPhysicsPointMass( MaVec2d( 0.0f, 0.0f ), HeadDamping_, 1.0f / 1.0f ) );
-	Constraints.emplace_back( GaPhysicsConstraint( 1, 2, -1.0f, 1.0f ) );
-	size_t PointOffset = 2;
-	size_t Distance = 8;
-	BcF32 LargeConstraintSize = 0.1f;
-	MaVec2d Offset( 0.0f, SectionHeight );
-	for( size_t Idx = 0; Idx < NoofSections; ++Idx )
-	{
-		PointMasses.push_back( GaPhysicsPointMass( MaVec2d( 0, 0.0f ) + Offset, 0.1f, 1.0f / 1.0f ) );
-
-		Offset += MaVec2d( 0.0f, SectionHeight );
-
-		// Link to next section.
-		if( Idx < ( NoofSections - 1 ) )
-		{
-			Constraints.emplace_back( GaPhysicsConstraint( PointOffset, PointOffset + 1, -1.0f, 1.0f ) );
-			PointOffset += 1;
-
-			size_t NextIdx = std::min( Idx + Distance, ( (size_t)NoofSections - 1 ) );
-			Constraints.emplace_back( GaPhysicsConstraint( Idx, NextIdx, -1.0f, LargeConstraintSize ) );
-			LargeConstraintSize *= 1.0f;
-		}
-	}
-
-	for( auto& PointMass : PointMasses )
-	{
-		PointMass.CurrPosition_ += RootPosition;
-		PointMass.PrevPosition_ += RootPosition;
-		PointMass.Acceleration_ = MaVec2d( 0.0f, 100.0f );
-	}
-	PointMasses[ 0 ].Acceleration_ = MaVec2d( 0.0f, 0.0f );
-	PointMasses[ PointMasses.size() - 1 ].Acceleration_ = MaVec2d( 0.0f, 0.0f );
-	PointMasses[ PointMasses.size() - 1 ].InvMass_ = 0.0f;
-	PointMasses[ PointMasses.size() - 1 ].DampingFactor_ = 1.0f;
-
-	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
-	Physics->setup( std::move( PointMasses ), std::move( Constraints ) );
-}
 
 //////////////////////////////////////////////////////////////////////////
 // addPhysicsNoise
@@ -333,15 +282,16 @@ void GaTentacleComponent::addPhysicsNoise()
 	// This is to force there to be no cases where the structure can't
 	// move to the side. Should solve any folding in errors upon initial spawning
 	// and such.
-	const BcF32 TinyMultiplier = 0.001f;
-	const BcF32 Increment = 0.0001f;
+	const BcF32 TinyMultiplier = 1.0f;
+	const BcF32 Increment = 0.01f;
 	BcF32 Counter = 0.0f;
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	auto NoofPointMasses = Physics->getNoofPointMasses();
 	for( size_t Idx = 0; Idx < NoofPointMasses; ++Idx )
 	{
-		MaVec2d Offset( BcCos( Counter ), BcSin( Counter ) * TinyMultiplier );
-		Physics->setPointMassPosition( Idx, Physics->getPointMassPosition( Idx ) + Offset );
+		const auto Multiplier = 1.0f - Physics->getPointMass( Idx ).DampingFactor_;
+		const MaVec2d Offset( BcCos( Counter ), BcSin( Counter ) * TinyMultiplier );
+		Physics->setPointMassPosition( Idx, Physics->getPointMassPosition( Idx ) + ( Offset * Multiplier ) );
 		Counter += Increment;
 	}
 }
@@ -408,7 +358,7 @@ void GaTentacleComponent::targetHome()
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics );
 	
-	TargetPosition_ = Physics->getPointMassPosition( Physics->getNoofPointMasses() - 1 ) + MaVec2d( 256.0f, 0.0f );
+	TargetPosition_ = MaVec2d( TailPosition_.x(), 800.0f );
 
 	if( TargetStructure_ != nullptr )
 	{
@@ -459,10 +409,12 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
-	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 20 );
-	addPhysicsNoise();
+	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, 30 );
 	targetHome();
 	calculateLevelStats( 1 );
+
+	TimerRandMult_ = BcRandom::Global.randRange( 0.8f, 1.2f );
+	TimerRandOffset_ = BcRandom::Global.randRange( 0.0f, BcPIMUL2 );
 
 	Super::onAttach( Parent );
 }

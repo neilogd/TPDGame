@@ -70,9 +70,9 @@ private:
 	std::vector< ScnEntity* > StructureTemplates_;
 	ScnEntity* UpgradeMenuTemplate_ = nullptr;
 	ScnEntity* ButtonTemplate_ = nullptr;
-	ScnEntity* UIEntity_ = nullptr;
+	ScnEntity* BuildUIEntity_ = nullptr;
 
-	MaVec2d UIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
+	MaVec2d BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
 
 	enum class GameState
 	{
