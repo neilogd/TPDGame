@@ -165,7 +165,6 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			// TODO: Get clip matrix better place perhaps? Maybe even just resort to using the view's clip matrix?
 			memset( &Component->UniformBlock_, 0, sizeof( Component->UniformBlock_ ) );
 			Component->UniformBlock_.TentacleClipMatrix_ = Component->Canvas_->getMatrix();
-			Component->UniformBlock_.TentacleUVScale_ = MaVec4d( 1.0f, 1.0f, 1.0f, 1.0f );
 			for( BcU32 Idx = 0; Idx < Component->NoofSegments_; ++Idx )
 			{
 				auto & Segment = Component->UniformBlock_.TentacleSegments_[ Idx ];

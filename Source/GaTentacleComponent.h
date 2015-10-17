@@ -10,14 +10,12 @@ struct GaTentacleUniformBlockData
 	REFLECTION_DECLARE_BASIC( GaTentacleUniformBlockData );
 	GaTentacleUniformBlockData(){};
 
-	static const BcU32 MAX_SEGMENTS = 64;
+	static const BcU32 MAX_SEGMENTS = 32;
 
 	/// xy = Position, zw = Tangent.
-	MaVec4d TentacleSegments_[ MAX_SEGMENTS ];
+	std::array< MaVec4d, MAX_SEGMENTS > TentacleSegments_;
 	/// Tentacle clip matrix.
 	MaMat4d TentacleClipMatrix_;
-	/// UV scale.
-	MaVec4d TentacleUVScale_;
 };
 
 //////////////////////////////////////////////////////////////////////////

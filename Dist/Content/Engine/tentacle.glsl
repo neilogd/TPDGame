@@ -19,7 +19,7 @@ void vertexMain()
 	float PosUVScale = 4.0f / ( InPosition_.z + 3.0 );
 
     gl_Position = mul( TentacleClipMatrix_, vec4( CalculatedPosition.xy, 0.0, 1.0 ) );
-    VsTexCoord0 = InTexCoord_ * TentacleUVScale_ * vec4( 1.0, PosUVScale, 1.0, 1.0 );
+    VsTexCoord0 = InTexCoord_ * vec4( 1.0, PosUVScale, 1.0, 1.0 );
 }
 
 #endif
