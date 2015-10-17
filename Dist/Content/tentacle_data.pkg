@@ -1,17 +1,35 @@
 {
 	"resources" : [
-	{
-			"type"			: "ScnTexture",
-			"name"			: "tentacle_base_texture",
+		{
+			"type" : "ScnTexture",
+			"name" : "tentacle_base_texture",
 
-			"source"		: "Content/Textures/tentacle_base.png",
+			"source" : "Content/Textures/tentacle_base.png",
 
 			"format" : "R8G8B8A8"
 		},
 
 		{
-			"type"			: "ScnShader",
-			"name"			: "tentacle_shader",
+			"type" : "ScnTexture",
+			"name" : "tentacle_suckers_texture",
+
+			"source" : "Content/Textures/tentacle_suckers.png",
+
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type" : "ScnTexture",
+			"name" : "tentacle_tip_texture",
+
+			"source" : "Content/Textures/tentacle_tip.png",
+
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type" : "ScnShader",
+			"name" : "tentacle_shader",
 
 			"sources" 		: {
 				"GLSL_330" : "Content/Engine/tentacle.glsl",
@@ -31,28 +49,42 @@
 			],
 
 			"entrypoints"		: {
-				"vertex" : 		"vertexMain",
-				"pixel" :		"pixelTexturedMain"
+				"vertex" : "vertexMain",
+				"pixel" : "pixelTexturedMain"
 			}
 		},
 
 		{
-			"type"			: "ScnMaterial",
-			"name"			: "tentacle_material",
+			"type" : "ScnMaterial",
+			"name" : "tentacle_material",
 
 			// Shader
-			"shader"		: "$(ScnShader:this.tentacle_shader)",
+			"shader" : "$(ScnShader:this.tentacle_shader)",
 
 			// Textures
 			"textures"		: {
-				"aDiffuseTex"	: "$(ScnTexture:this.tentacle_base_texture)"
+				"aTentacleBaseTex" : "$(ScnTexture:this.tentacle_base_texture)",
+				"aTentacleSuckersTex" : "$(ScnTexture:this.tentacle_suckers_texture)",
+				"aTentacleTipTex" : "$(ScnTexture:this.tentacle_tip_texture)"
 			},
 
 			// Samplers
 			"samplers"		: {
-				"aDiffuseTex"	: {
+				"aTentacleBaseTex"	: {
 					"addressu" : "repeat",
 					"addressv" : "repeat",
+					"minfilter" : "linear",
+					"magfilter" : "linear"
+				},
+				"aTentacleSuckersTex"	: {
+					"addressu" : "repeat",
+					"addressv" : "repeat",
+					"minfilter" : "linear",
+					"magfilter" : "linear"
+				},
+				"aTentacleTipTex"	: {
+					"addressu" : "clamp",
+					"addressv" : "clamp",
 					"minfilter" : "linear",
 					"magfilter" : "linear"
 				}

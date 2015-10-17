@@ -16,6 +16,8 @@ struct GaTentacleUniformBlockData
 	std::array< MaVec4d, MAX_SEGMENTS > TentacleSegments_;
 	/// Tentacle clip matrix.
 	MaMat4d TentacleClipMatrix_;
+	/// Timer.
+	MaVec4d TentacleTimer_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -109,7 +111,10 @@ private:
 	// Rendering.
 	struct Vertex
 	{
-		MaVec4d Position_;
+		BcF32 Idx_;
+		BcF32 WaveOffset_;
+		BcF32 ScaleWave_;
+		BcF32 ScaleWidth_;
 		MaVec2d TexCoord_;
 	};
 

@@ -27,6 +27,7 @@ void GaTentacleUniformBlockData::StaticRegisterClass()
 	{
 		new ReField( "TentacleSegments_", &GaTentacleUniformBlockData::TentacleSegments_ ),
 		new ReField( "TentacleClipMatrix_", &GaTentacleUniformBlockData::TentacleClipMatrix_ ),
+		new ReField( "TentacleTimer_", &GaTentacleUniformBlockData::TentacleTimer_ ),
 	};
 		
 	auto& Class = ReRegisterClass< GaTentacleUniformBlockData >( Fields );
@@ -165,6 +166,7 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			// TODO: Get clip matrix better place perhaps? Maybe even just resort to using the view's clip matrix?
 			memset( &Component->UniformBlock_, 0, sizeof( Component->UniformBlock_ ) );
 			Component->UniformBlock_.TentacleClipMatrix_ = Component->Canvas_->getMatrix();
+			Component->UniformBlock_.TentacleTimer_ = MaVec4d( Timer_, Timer_, Timer_, Timer_ ) * MaVec4d( 1.0f, 2.0f, 3.0f, 4.0f );
 			for( BcU32 Idx = 0; Idx < Component->NoofSegments_; ++Idx )
 			{
 				auto & Segment = Component->UniformBlock_.TentacleSegments_[ Idx ];
@@ -482,26 +484,47 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			auto Vertices = static_cast< Vertex* >( Lock.Buffer_ );
 			Vertex SrcVertices[] = 
 			{
-				{ MaVec4d( -1.0f, 0.0f, 1.0f, 0.0f ), MaVec2d( 0.0f, 0.0f ) },
-				{ MaVec4d(  1.0f, 0.0f, 1.0f, 0.0f ), MaVec2d( 1.0f, 0.0f ) },
-				{ MaVec4d( -1.0f, 1.0f, 1.0f, 0.0f ), MaVec2d( 0.0f, 1.0f ) },
-				{ MaVec4d(  1.0f, 1.0f, 1.0f, 0.0f ), MaVec2d( 1.0f, 1.0f ) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f, MaVec2d( 0.0f, 0.0f ) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f, MaVec2d( 1.0f, 0.0f ) }
 			};
+
+			BcF32 OffsetIncr = 4.0f * ( BcPIMUL2 / static_cast< BcF32 >( NoofSegments ) );
 
 			for( BcU32 IdxA = 0; IdxA < NoofSegments; ++IdxA )
 			{
 				Vertices[0] = SrcVertices[0];
 				Vertices[1] = SrcVertices[1];
 
-				Vertices[0].Position_.w( IdxA );
-				Vertices[1].Position_.w( IdxA );
+				if( IdxA == 0 )
+				{
+					Vertices[0].ScaleWidth_ *= 0.5f;
+					Vertices[1].ScaleWidth_ *= 0.5f;
+				}
 
-				SrcVertices[0].Position_ = SrcVertices[0].Position_ * MaVec4d( 1.0f, 1.0f, 1.05f, 1.0f );
-				SrcVertices[1].Position_ = SrcVertices[1].Position_ * MaVec4d( 1.0f, 1.0f, 1.05f, 1.0f );
+				if( IdxA == 1 )
+				{
+					Vertices[0].ScaleWidth_ *= 0.75f;
+					Vertices[1].ScaleWidth_ *= 0.75f;
+				}
+
+				// Set vertex index.
+				Vertices[0].Idx_ = IdxA;
+				Vertices[1].Idx_ = IdxA;
+
+				// Increase offset.
+				SrcVertices[0].WaveOffset_ += OffsetIncr;
+				SrcVertices[1].WaveOffset_ += OffsetIncr;
+				
+				// Scale up wave.
+				SrcVertices[0].ScaleWave_ = SrcVertices[0].ScaleWave_ + 0.002f;
+				SrcVertices[1].ScaleWave_ = SrcVertices[1].ScaleWave_ + 0.002f;
+				
+				// Scale up width.
+				SrcVertices[0].ScaleWidth_ = SrcVertices[0].ScaleWidth_ * 1.05f;
+				SrcVertices[1].ScaleWidth_ = SrcVertices[1].ScaleWidth_ * 1.05f;
 
 				for( BcU32 IdxB = 0; IdxB < 2; ++IdxB )
 				{
-					SrcVertices[ IdxB ].Position_ += MaVec4d( 0.0f, 1.0f, 0.0f, 0.0f );
 					SrcVertices[ IdxB ].TexCoord_ += MaVec2d( 0.0f, 1.0f );
 				}
 

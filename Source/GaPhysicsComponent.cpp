@@ -66,63 +66,67 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 	const BcF32 Tick = TickRate_;
 	const BcF32 TickSquared = Tick * Tick;
 
-	//return;
-	TickAccumulator_ += SysKernel::pImpl()->getFrameTime();
-	while( TickAccumulator_ > Tick )
+	if(Active_)
 	{
-		TickAccumulator_ -= Tick;
-		for( auto InComponent : Components )
+		TickAccumulator_ += SysKernel::pImpl()->getFrameTime();
+		while( TickAccumulator_ > Tick )
 		{
-			BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
-			auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
-
-			// Update point masses.
-			for( auto& PointMass : Component->PointMasses_ )
+			TickAccumulator_ -= Tick;
+			for( auto InComponent : Components )
 			{
-				BcAssert( PointMass.InvMass_ >= 0.0f );
-				MaVec2d Velocity = PointMass.CurrPosition_ - PointMass.PrevPosition_;
-				Velocity = Velocity * ( 1.0f - PointMass.DampingFactor_ ) + ( PointMass.Acceleration_ * TickSquared );
-				auto MaxVelocityFrame = PointMass.MaxVelocity_ * Tick;
-				if( PointMass.MaxVelocity_ > 0.0f )
+				BcAssert( InComponent->isTypeOf< GaPhysicsComponent >() );
+				auto* Component = static_cast< GaPhysicsComponent* >( InComponent.get() );
+
+				// Update point masses.
+				for( auto& PointMass : Component->PointMasses_ )
 				{
-					if( Velocity.magnitudeSquared() > ( MaxVelocityFrame * MaxVelocityFrame ) )
+					BcAssert( PointMass.InvMass_ >= 0.0f );
+					MaVec2d Velocity = PointMass.CurrPosition_ - PointMass.PrevPosition_;
+					Velocity = Velocity * ( 1.0f - PointMass.DampingFactor_ ) + ( PointMass.Acceleration_ * TickSquared );
+					auto MaxVelocityFrame = PointMass.MaxVelocity_ * Tick;
+					if( PointMass.MaxVelocity_ > 0.0f )
 					{
-						Velocity = Velocity.normal() * MaxVelocityFrame;
+						if( Velocity.magnitudeSquared() > ( MaxVelocityFrame * MaxVelocityFrame ) )
+						{
+							Velocity = Velocity.normal() * MaxVelocityFrame;
+						}
 					}
+
+					PointMass.PrevPosition_= PointMass.CurrPosition_;
+					PointMass.CurrPosition_ += Velocity;
 				}
 
-				PointMass.PrevPosition_= PointMass.CurrPosition_;
-				PointMass.CurrPosition_ += Velocity;
-			}
-
-			// Update constraints.
-			for( size_t Idx = 0; Idx < Iterations_; ++Idx )
-			{
-				for( auto& Constraint : Component->Constraints_ )
+				// Update constraints.
+				for( size_t Idx = 0; Idx < Iterations_; ++Idx )
 				{
-					auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
-					auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
-					const MaVec2d Delta = PointMassB.CurrPosition_ - PointMassA.CurrPosition_;
-					const BcF32 Length = Delta.magnitude();
-					const MaVec2d Offset = Delta.normal() * ( Length - Constraint.Length_ );
-					const BcF32 TotalInvMass = PointMassA.InvMass_ + PointMassB.InvMass_;
-					if( TotalInvMass > 0.0f )
+					for( auto& Constraint : Component->Constraints_ )
 					{
-						const BcF32 InfluenceA = PointMassA.InvMass_ / TotalInvMass;
-						const BcF32 InfluenceB = PointMassB.InvMass_ / TotalInvMass;
-						PointMassA.CurrPosition_ += Offset * InfluenceA * Constraint.Rigidity_;
-						PointMassB.CurrPosition_ -= Offset * InfluenceB * Constraint.Rigidity_;
+						auto& PointMassA = Component->PointMasses_[ Constraint.IdxA_ ];
+						auto& PointMassB = Component->PointMasses_[ Constraint.IdxB_ ];
+						const MaVec2d Delta = PointMassB.CurrPosition_ - PointMassA.CurrPosition_;
+						const BcF32 Length = Delta.magnitude();
+						const MaVec2d Offset = Delta.normal() * ( Length - Constraint.Length_ );
+						const BcF32 TotalInvMass = PointMassA.InvMass_ + PointMassB.InvMass_;
+						if( TotalInvMass > 0.0f )
+						{
+							const BcF32 InfluenceA = PointMassA.InvMass_ / TotalInvMass;
+							const BcF32 InfluenceB = PointMassB.InvMass_ / TotalInvMass;
+							PointMassA.CurrPosition_ += Offset * InfluenceA * Constraint.Rigidity_;
+							PointMassB.CurrPosition_ -= Offset * InfluenceB * Constraint.Rigidity_;
+						}
 					}
 				}
 			}
 		}
 	}
-
 	TimeTaken_ = Timer.time();
 
 #if !PSY_PRODUCTION
 	if ( ImGui::Begin( "Game Debug" ) )
 	{
+		ImGui::Checkbox( "Physics Active", &Active_ );
+		ImGui::Checkbox( "Physics Debug Draw", &DebugDraw_ );
+
 		size_t NoofPointMasses = 0;
 		size_t NoofConstraints = 0;
 		for( auto InComponent : Components )
@@ -150,8 +154,6 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 				Iterations_ = static_cast< BcU32 >( Iterations );
 			}
 		}
-
-		ImGui::Checkbox( "Physics Debug Draw", &DebugDraw_ );
 
 		ImGui::Text( "Point mases: %u",  NoofPointMasses );
 		ImGui::Text( "Constraints: %u",  NoofConstraints );
