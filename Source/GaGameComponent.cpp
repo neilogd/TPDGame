@@ -148,11 +148,6 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 
 			if( Event.ID_ == 1000 )
 			{
-				if( SelectedStructure_ )
-				{
-					SelectedStructure_->getParentEntity()->setWorldPosition( 
-						MaVec3d( getStructurePlacement( Event.Position_ ), 0.0f ) );
-				}
 			}
 			return evtRET_PASS;
 		} );
@@ -164,13 +159,10 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 			const auto& Event = InEvent.get< GaHotspotEvent >();
 			if( Event.ID_ == 1000 )
 			{
-				if( SelectedStructure_ )
+				if( SelectedStructureIdx_ != BcErrorCode )
 				{
-					SelectedStructure_->getParentEntity()->setWorldPosition( 
-						MaVec3d( getStructurePlacement( Event.Position_ ), 0.0f ) );
-					buildStructure( SelectedStructure_ );
-					SelectedStructure_ = nullptr;
-					setInputState( InputState::IDLE );
+					buildStructure( SelectedStructureIdx_, Event.Position_ );
+					setSelection( BcErrorCode );
 				}
 			}
 			return evtRET_PASS;
@@ -272,6 +264,8 @@ void GaGameComponent::createStructureButtons()
 				ButtonTemplate_,
 				Transform, BuildUIEntity_ ) );
 		BcAssert( ButtonEntity );
+
+		StructureUISprites_.push_back( ButtonEntity->getComponentByType< ScnSpriteComponent >() );
 		
 		// Subscribe to event on button entity.
 		ButtonEntity->subscribe( gaEVT_HOTSPOT_PRESSED, this,
@@ -280,34 +274,16 @@ void GaGameComponent::createStructureButtons()
 				const auto& Event = InEvent.get< GaHotspotEvent >();
 				if( Event.ID_ < StructureTemplates_.size() )
 				{
-					SelectedStructureIdx_ = Event.ID_;
-
-					auto StructureEntity = StructureTemplates_[ SelectedStructureIdx_ ];
-					auto Structure = StructureEntity->getComponentByType< GaStructureComponent >();
-
 					if( GameState_ == GameState::BUILD_PHASE )
 					{
 						if( InputState_ == InputState::BUILD_BUILDING )
 						{
-							setInputState( InputState::IDLE );
-							SelectedStructure_ = nullptr;
+							setSelection( BcErrorCode );
 						}
 
 						if( InputState_ == InputState::IDLE )
 						{
-							// Get cost of structure.
-							auto Cost = Structure->getBuildCost();
-							if( spendResources( Cost ) )
-							{
-								// Set input state (clears selected already)
-								setInputState( InputState::BUILD_BUILDING );
-
-								// Setup new structure.
-								auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( ScnEntitySpawnParams(
-									StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() ) );
-								BcAssert( SpawnedEntity );
-								SelectedStructure_ = SpawnedEntity->getComponentByType< GaStructureComponent >();
-							}
+							setSelection( Event.ID_ );
 						}
 					}
 				}
@@ -328,13 +304,63 @@ void GaGameComponent::createStructureButtons()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// buildStructure
-void GaGameComponent::buildStructure( GaStructureComponent* Structure )
+// setSelection
+void GaGameComponent::setSelection( BcU32 SelectedIdx )
 {
+	bool ShouldSelect = SelectedStructureIdx_ != SelectedIdx;
+
+	// Undo structure selection + refund cost.
+	if( SelectedStructureIdx_ != BcErrorCode )
+	{
+		auto OldStructureSprite = StructureUISprites_[ SelectedStructureIdx_ ];
+		OldStructureSprite->setColour( RsColour::WHITE );
+		SelectedStructureIdx_ = BcErrorCode;
+		setInputState( InputState::IDLE );
+	}
+
+	if( ShouldSelect && SelectedIdx != BcErrorCode )
+	{
+		auto StructureEntity = StructureTemplates_[ SelectedIdx ];
+		auto Structure = StructureEntity->getComponentByType< GaStructureComponent >();
+		auto Cost = Structure->getBuildCost();
+		if( spendResources( Cost ) )
+		{
+			spendResources( -Cost );
+			// Set input state (clears selected already)
+			setInputState( InputState::BUILD_BUILDING );
+
+			auto NewStructureSprite = StructureUISprites_[ SelectedIdx ];
+			NewStructureSprite->setColour( RsColour::GREEN );
+			SelectedStructureIdx_ = SelectedIdx;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildStructure
+void GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
+{
+	// Setup new structure.
+	auto SpawnParams = ScnEntitySpawnParams(
+		StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() );
+
+	SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Parent )
+		{
+			auto Structure = Parent->getComponentByType< GaStructureComponent >();
+			BcAssert( Structure );
+			Structures_.push_back( Structure );
+			Structure->setID( StructureID_++ );
+			Structure->setActive( BcTrue );
+		};
+
+	auto Structure = Parent->getComponentByType< GaStructureComponent >();
 	BcAssert( Structure );
-	Structures_.push_back( Structure );
-	Structure->setID( StructureID_++ );
-	Structure->setActive( BcTrue );
+	auto StructureEntity = StructureTemplates_[ StructureIdx ];
+	auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( SpawnParams );
+	BcAssert( SpawnedEntity );
+
+	SpawnedEntity->setWorldPosition( 
+		MaVec3d( getStructurePlacement( Position ), 0.0f ) );
 
 	// Listen for when structure is press.
 	Structure->getParentEntity()->subscribe( gaEVT_HOTSPOT_PRESSED, this,
@@ -498,17 +524,6 @@ void GaGameComponent::setGameState( GameState GameState )
 void GaGameComponent::setInputState( InputState InputState )
 {
 	PSY_LOG( "Changing input state from %u -> %u", InputState_, InputState );
-
-	if( SelectedStructure_ )
-	{
-		// Give cost back.
-		auto* StructureComponent = SelectedStructure_->getComponentByType< GaStructureComponent >();
-		auto Cost = StructureComponent->getBuildCost();
-		spendResources( -Cost );
-
-		ScnCore::pImpl()->removeEntity( SelectedStructure_->getParentEntity() );
-		SelectedStructure_ = nullptr;
-	}
 
 	InputState_ = InputState;
 }

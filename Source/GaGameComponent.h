@@ -44,7 +44,8 @@ public:
 	const std::vector< class GaTentacleComponent* >& getTentacles() const;
 
 	void createStructureButtons();
-	void buildStructure( class GaStructureComponent* Structure );
+	void setSelection( BcU32 SelectedIdx );
+	void buildStructure( BcU32 StructureIdx, MaVec2d Position );
 	void destroyStructure( class GaStructureComponent* Structure );
 
 	void launchProjectile( class GaProjectileComponent* Projectile );
@@ -115,7 +116,7 @@ private:
 
 	// Input state specific.
 	InputState InputState_ = InputState::IDLE;
-	class GaStructureComponent* SelectedStructure_ = nullptr;
+	std::vector< class ScnSpriteComponent* > StructureUISprites_;
 	size_t SelectedStructureIdx_ = BcErrorCode;
 
 	class ScnCanvasComponent* Canvas_ = nullptr;
