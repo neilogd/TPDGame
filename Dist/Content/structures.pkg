@@ -19,8 +19,8 @@
 					"basefirerate" : 5.0,
 					"levelfireratemultiplier" : 0.9,
 
-					"buildcost" : 10,
-					"baseupgradecost" : 10,
+					"buildcost" : 25,
+					"baseupgradecost" : 20,
 					"levelupgradecost" : 10
 				},
 
@@ -59,11 +59,11 @@
 
 					"structuretype" : "RESOURCE",
 
-					"buildcost" : 10,
-					"baseupgradecost" : 10,
+					"buildcost" : 25,
+					"baseupgradecost" : 20,
 					"levelupgradecost" : 10,
 
-					"baseresourcerate" : 10,
+					"baseresourcerate" : 25,
 					"levelresourceratemultiplier" : 1
 				},
 				{
@@ -101,8 +101,8 @@
 
 					"structuretype" : "POTATO",
 
-					"buildcost" : 10,
-					"baseupgradecost" : 10,
+					"buildcost" : 25,
+					"baseupgradecost" : 20,
 					"levelupgradecost" : 10
 				},
 				{

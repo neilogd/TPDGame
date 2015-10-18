@@ -134,8 +134,8 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	Parent->attach< GaHotspotComponent >( 
 		BcName::INVALID,
 		1000, -1000,
-		MaVec2d( 64.0f, 64.0f ),
-		Dimensions - MaVec2d( 128.0f, 256.0f ) );
+		MaVec2d( 64.0f, 64.0f + 128.0f ),
+		Dimensions - MaVec2d( 128.0f, 512.0f ) );
 
 	// Create buttons.
 	createStructureButtons();
@@ -161,7 +161,9 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 			{
 				if( SelectedStructureIdx_ != BcErrorCode )
 				{
-					buildStructure( SelectedStructureIdx_, Event.Position_ );
+					auto Position = getStructurePlacement( Event.Position_ );
+
+					buildStructure( SelectedStructureIdx_, Position );
 					setSelection( BcErrorCode );
 				}
 			}
@@ -323,9 +325,8 @@ void GaGameComponent::setSelection( BcU32 SelectedIdx )
 		auto StructureEntity = StructureTemplates_[ SelectedIdx ];
 		auto Structure = StructureEntity->getComponentByType< GaStructureComponent >();
 		auto Cost = Structure->getBuildCost();
-		if( spendResources( Cost ) )
+		if( Cost <= PlayerResources_ )
 		{
-			spendResources( -Cost );
 			// Set input state (clears selected already)
 			setInputState( InputState::BUILD_BUILDING );
 
@@ -338,72 +339,91 @@ void GaGameComponent::setSelection( BcU32 SelectedIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // buildStructure
-void GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
+bool GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
 {
+	BcAssert( ( Position - getStructurePlacement( Position ) ).magnitude() < 1e-6f );
+
+	// Check position is not taken.
+	for( auto Structure : Structures_ )
+	{
+		auto StructurePos = Structure->getParentEntity()->getWorldPosition().xy();
+		if( ( Position - StructurePos ).magnitude() < 1e-6f )
+		{
+			return false;
+		}
+	}
+
 	// Setup new structure.
-	auto SpawnParams = ScnEntitySpawnParams(
-		StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() );
-
-	SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Parent )
-		{
-			auto Structure = Parent->getComponentByType< GaStructureComponent >();
-			BcAssert( Structure );
-			Structures_.push_back( Structure );
-			Structure->setID( StructureID_++ );
-			Structure->setActive( BcTrue );
-		};
-
-	auto Structure = Parent->getComponentByType< GaStructureComponent >();
-	BcAssert( Structure );
 	auto StructureEntity = StructureTemplates_[ StructureIdx ];
-	auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( SpawnParams );
-	BcAssert( SpawnedEntity );
+	auto Structure = StructureEntity->getComponentByType< GaStructureComponent >();
+	BcAssert( Structure );
 
-	SpawnedEntity->setWorldPosition( 
-		MaVec3d( getStructurePlacement( Position ), 0.0f ) );
+	if( spendResources( Structure->getBuildCost() ) )
+	{
+		auto SpawnParams = ScnEntitySpawnParams(
+			StructureEntity->getName(), StructureEntity, MaMat4d(), getParentEntity() );
 
-	// Listen for when structure is press.
-	Structure->getParentEntity()->subscribe( gaEVT_HOTSPOT_PRESSED, this,
-		[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
-		{
-			const auto& Event = InEvent.get< GaHotspotEvent >();
-			BcAssert( Structure->getID() == Event.ID_ );
-
-			if( GameState_ == GameState::BUILD_PHASE )
+		SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Parent )
 			{
-				CurrentModal_ = ScnCore::pImpl()->spawnEntity( 
-					ScnEntitySpawnParams(
-						BcName::INVALID,
-						UpgradeMenuTemplate_,
-						MaMat4d(), getParentEntity() ) );
-				BcAssert( CurrentModal_ );
+				auto Structure = Parent->getComponentByType< GaStructureComponent >();
+				BcAssert( Structure );
+				Structures_.push_back( Structure );
+				Structure->setID( StructureID_++ );
+				Structure->setActive( BcTrue );
+			};
 
-				// Subscribe to modal buttons.
-				CurrentModal_->subscribe( gaEVT_HOTSPOT_PRESSED, this,
-					[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
-					{
-						const auto& Event = InEvent.get< GaHotspotEvent >();
-						if( Event.ID_ == 0 )
+		auto SpawnedEntity = ScnCore::pImpl()->spawnEntity( SpawnParams );
+		BcAssert( SpawnedEntity );
+		Structure = SpawnedEntity->getComponentByType< GaStructureComponent >();
+		BcAssert( Structure );
+
+		SpawnedEntity->setWorldPosition( 
+			MaVec3d( Position, 0.0f ) );
+
+		// Listen for when structure is press.
+		SpawnedEntity->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+			[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+			{
+				const auto& Event = InEvent.get< GaHotspotEvent >();
+				BcAssert( Structure->getID() == Event.ID_ );
+
+				if( GameState_ == GameState::BUILD_PHASE )
+				{
+					CurrentModal_ = ScnCore::pImpl()->spawnEntity( 
+						ScnEntitySpawnParams(
+							BcName::INVALID,
+							UpgradeMenuTemplate_,
+							MaMat4d(), getParentEntity() ) );
+					BcAssert( CurrentModal_ );
+
+					// Subscribe to modal buttons.
+					CurrentModal_->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+						[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
 						{
-							if( spendResources( Structure->getUpgradeCost() ) )
+							const auto& Event = InEvent.get< GaHotspotEvent >();
+							if( Event.ID_ == 0 )
 							{
-								Structure->incLevel();
+								if( spendResources( Structure->getUpgradeCost() ) )
+								{
+									Structure->incLevel();
+								}
+								ScnCore::pImpl()->removeEntity( CurrentModal_ );
+								CurrentModal_ = nullptr;
 							}
-							ScnCore::pImpl()->removeEntity( CurrentModal_ );
-							CurrentModal_ = nullptr;
-						}
-						else if( Event.ID_ == 1 )
-						{
-							ScnCore::pImpl()->removeEntity( CurrentModal_ );
-							CurrentModal_ = nullptr;
-						}
-						return evtRET_PASS;
-					} );
-			}
+							else if( Event.ID_ == 1 )
+							{
+								ScnCore::pImpl()->removeEntity( CurrentModal_ );
+								CurrentModal_ = nullptr;
+							}
+							return evtRET_PASS;
+						} );
+				}
 
-			return evtRET_PASS;
-		} );
-
+				return evtRET_PASS;
+			} );
+		return true;
+	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -560,6 +580,7 @@ void GaGameComponent::update( BcF32 Tick )
 		ImGui::Text( "Player resources: %lld", PlayerResources_ );
 		ImGui::Text( "Game timer: %f", GameTimer_ );
 		ImGui::Text( "Game state: %u", GameState_ );
+		ImGui::Text( "Input state: %u", InputState_ );
 		ImGui::Text( "Game level: %u", Level_ );
 		if( ImGui::Button( "Back to Main Menu" ) )
 		{
@@ -594,13 +615,13 @@ void GaGameComponent::advanceGameTimer( BcF32 Tick )
 		LevelGameTimer > HalfGamePhaseTime )
 	{
 		setGameState( GameState::DEFEND_PHASE );
-		setInputState( InputState::IDLE );
+		setSelection( BcErrorCode );
 	}
 	else if( GameState_ == GameState::DEFEND_PHASE &&
 		LevelGameTimer < HalfGamePhaseTime )
 	{
 		setGameState( GameState::BUILD_PHASE );
-		setInputState( InputState::IDLE );
+		setSelection( BcErrorCode );
 	}
 }
 

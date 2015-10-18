@@ -174,6 +174,8 @@ void GaStructureComponent::setupTopology()
 		Constraints.emplace_back( GaPhysicsConstraint( 1 + Idx, 1 + ( ( Idx + 1 ) % 3 ), -1.0f, 1.0f ) );
 	}
 
+	Physics_ = getParentEntity()->getComponentByType< GaPhysicsComponent >();
+	BcAssert( Physics_ );
 	Physics_->setup( std::move( PointMasses ), std::move( Constraints ) );
 
 	// Grab absolute position.

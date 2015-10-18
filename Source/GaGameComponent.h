@@ -45,7 +45,7 @@ public:
 
 	void createStructureButtons();
 	void setSelection( BcU32 SelectedIdx );
-	void buildStructure( BcU32 StructureIdx, MaVec2d Position );
+	bool buildStructure( BcU32 StructureIdx, MaVec2d Position );
 	void destroyStructure( class GaStructureComponent* Structure );
 
 	void launchProjectile( class GaProjectileComponent* Projectile );
