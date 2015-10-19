@@ -13,7 +13,7 @@
 					"type" : "GaTentacleComponent",
 
 					"material" : "$(ScnMaterial:tentacle_data.tentacle_material)",
-					"movespeed" : 64.0,
+					"movespeed" : 60.0,
 					"movespeedmultiplier" : 0.1,
 					"headdamping" : 0.5,
 					"headconstraintrigidity" : 0.25
@@ -34,7 +34,7 @@
 					"type" : "GaTentacleComponent",
 
 					"material" : "$(ScnMaterial:tentacle_data.tentacle_material)",
-					"movespeed" : 128.0,
+					"movespeed" : 60.0,
 					"headdamping" : 0.5,
 					"headconstraintrigidity" : 0.25
 				}

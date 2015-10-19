@@ -58,6 +58,8 @@ public:
 
 	MaVec2d getStructurePlacement( MaVec2d Position );
 
+	void spawnPopupText( MaVec2d Position, MaVec2d Velocity, BcF32 Time, const char* Format, ... );
+
 private:
 	void update( BcF32 Tick );
 	void advanceGameTimer( BcF32 Tick );
@@ -122,5 +124,15 @@ private:
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
 
+
+	struct PopupText
+	{
+		BcChar Text_[ 256 ];
+		MaVec2d Position_;
+		MaVec2d Velocity_;
+		BcF32 Time_;
+	};
+
+	std::vector< PopupText > PopupText_;
 
 };

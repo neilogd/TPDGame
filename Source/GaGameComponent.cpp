@@ -380,6 +380,8 @@ bool GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
 		SpawnedEntity->setWorldPosition( 
 			MaVec3d( Position, 0.0f ) );
 
+		spawnPopupText( Position - MaVec2d( 0.0f, 32.0f ), MaVec2d( 0.0f, -8.0f ), 2.0f, "Build!" );
+
 		// Listen for when structure is press.
 		SpawnedEntity->subscribe( gaEVT_HOTSPOT_PRESSED, this,
 			[ this, Structure ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
@@ -406,6 +408,7 @@ bool GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
 								if( spendResources( Structure->getUpgradeCost() ) )
 								{
 									Structure->incLevel();
+									spawnPopupText( Structure->getParentEntity()->getWorldPosition().xy() - MaVec2d( 0.0f, 32.0f ), MaVec2d( 0.0f, -8.0f ), 2.0f, "Upgrade!" );
 								}
 								ScnCore::pImpl()->removeEntity( CurrentModal_ );
 								CurrentModal_ = nullptr;
@@ -512,6 +515,22 @@ MaVec2d GaGameComponent::getStructurePlacement( MaVec2d Position )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// spawnPopupText
+void GaGameComponent::spawnPopupText( MaVec2d Position, MaVec2d Velocity, BcF32 Time, const char* Format, ... )
+{
+	PopupText PopupText = 
+	{
+		{ 0 }, Position, Velocity, Time
+	};
+	va_list ArgList;
+	va_start( ArgList, Format);
+	BcVSPrintf( PopupText.Text_, sizeof( PopupText.Text_ ) - 1, Format, ArgList );
+	va_end( ArgList );
+
+	PopupText_.push_back( PopupText );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setGameState
 void GaGameComponent::setGameState( GameState GameState )
 {
@@ -573,6 +592,33 @@ void GaGameComponent::update( BcF32 Tick )
 	auto UIEntityPosition = BuildUIEntity_->getLocalPosition().xy();
 	UIEntityPosition = UIEntityPosition * 0.9f + BuildUIEntityTarget_ * 0.1f;
 	BuildUIEntity_->setLocalPosition( MaVec3d( UIEntityPosition, 0.0f ) );
+
+	// Render popup text.
+	ScnFontDrawParams PopupDrawParams;
+	PopupDrawParams.setAlignment( ScnFontAlignment::HCENTRE | ScnFontAlignment::VCENTRE );
+	PopupDrawParams.setSize( 20.0f );
+	PopupDrawParams.setMargin( 0.0f );
+	PopupDrawParams.setTextSettings( MaVec4d( 0.35f, 0.5f, 0.0f, 0.0f ) );
+	PopupDrawParams.setTextColour( RsColour::BLACK );
+	PopupDrawParams.setLayer( 1000 );
+	for( auto It = PopupText_.begin(); It != PopupText_.end(); )
+	{
+		auto& PopupText = *It;
+		if( PopupText.Time_ > 0.0f )
+		{
+			Font_->drawText( Canvas_, PopupDrawParams,
+				PopupText.Position_,
+				MaVec2d( 0.0f, 0.0f ),
+				PopupText.Text_ );
+			PopupText.Time_ -= Tick;
+			PopupText.Position_ += PopupText.Velocity_ * Tick;
+			++It;
+		}
+		else
+		{
+			It = PopupText_.erase( It );
+		}
+	}
 
 #if !PSY_PRODUCTION
 	if( ImGui::Begin( "Game Debug" ) )
