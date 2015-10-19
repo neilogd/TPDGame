@@ -446,7 +446,7 @@ void GaGameComponent::launchProjectile( GaProjectileComponent* Projectile )
 
 //////////////////////////////////////////////////////////////////////////
 // getNearestTentacle
-class GaTentacleComponent* GaGameComponent::getNearestTentacle() const
+class GaTentacleComponent* GaGameComponent::getNearestTentacle( BcBool IncludeTargetted ) const
 {
 	GaTentacleComponent* NearestTentacle = nullptr;
 	if( Tentacles_.size() > 0 )
@@ -459,11 +459,12 @@ class GaTentacleComponent* GaGameComponent::getNearestTentacle() const
 			{
 				// Check if projectile is targetting tentacle already.
 				auto FoundProjectile = 
-					std::find_if( Projectiles_.begin(), Projectiles_.end(),
-						[ Tentacle ]( GaProjectileComponent* Projectile )
-						{
-							return Projectile->getTarget() == Tentacle->getParentEntity();
-						} );
+					IncludeTargetted ? Projectiles_.end() :
+						std::find_if( Projectiles_.begin(), Projectiles_.end(),
+							[ Tentacle ]( GaProjectileComponent* Projectile )
+							{
+								return Projectile->getTarget() == Tentacle->getParentEntity();
+							} );
 
 				if( FoundProjectile == Projectiles_.end() )
 				{

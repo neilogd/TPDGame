@@ -49,7 +49,7 @@ public:
 	void destroyStructure( class GaStructureComponent* Structure );
 
 	void launchProjectile( class GaProjectileComponent* Projectile );
-	class GaTentacleComponent* getNearestTentacle() const;
+	class GaTentacleComponent* getNearestTentacle( BcBool IncludeTargetted ) const;
 
 	BcS64 getPlayerScore() const { return PlayerScore_; }
 	BcS64 getPlayerResources() const { return PlayerResources_; }

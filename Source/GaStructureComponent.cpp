@@ -317,7 +317,11 @@ void GaStructureComponent::update( BcF32 Tick )
 		if( Timer_ >= CalculatedFireRate_ )
 		{
 			// Find a tentacle.
-			GaTentacleComponent* NearestTentacle = Game_->getNearestTentacle();
+			GaTentacleComponent* NearestTentacle = Game_->getNearestTentacle( BcFalse );
+			if( NearestTentacle == nullptr )
+			{
+				NearestTentacle = Game_->getNearestTentacle( BcTrue );
+			}
 				
 			// Spawn a projectile.
 			if( NearestTentacle && TemplateProjectile_ )
