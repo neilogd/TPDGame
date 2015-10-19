@@ -49,6 +49,8 @@ public:
 	void destroyStructure( class GaStructureComponent* Structure );
 
 	void launchProjectile( class GaProjectileComponent* Projectile );
+
+	void spawnTentacles();
 	class GaTentacleComponent* getNearestTentacle( BcBool IncludeTargetted ) const;
 
 	BcS64 getPlayerScore() const { return PlayerScore_; }
@@ -57,6 +59,8 @@ public:
 	BcBool spendResources( BcS64 NoofResources );
 
 	MaVec2d getStructurePlacement( MaVec2d Position );
+
+	BcF32 haltonSequence( BcU32 Index, BcU32 Base );
 
 	void spawnPopupText( MaVec2d Position, MaVec2d Velocity, BcF32 Time, const char* Format, ... );
 

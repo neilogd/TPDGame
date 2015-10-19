@@ -169,26 +169,6 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 			}
 			return evtRET_PASS;
 		} );
-
-	// Spawn tentacle things.
-	for( BcF32 X = -480.0f; X <= 480.0f; X += 240.0f )
-	{
-		MaMat4d TransformA;
-		auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 128.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
-		TransformA.translation( MaVec3d( TentacleA, 0.0f ) + MaVec3d( X, 0.0f, 0.0f ) );
-
-		auto SpawnParamsA = ScnEntitySpawnParams( 
-				BcName::INVALID, "tentacles", "TentacleEntity_0",
-				TransformA, Parent );
-
-		SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
-			{
-				Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
-			};
-
-		ScnCore::pImpl()->spawnEntity( SpawnParamsA );
-	}
-
 	
 	Super::onAttach( Parent );
 }
@@ -448,6 +428,29 @@ void GaGameComponent::launchProjectile( GaProjectileComponent* Projectile )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// spawnTentacles
+void GaGameComponent::spawnTentacles()
+{
+	// Spawn tentacle thing.
+	auto X = haltonSequence( Level_, 2 ) * 960.0f - 480.0f;
+
+	MaMat4d TransformA;
+	auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 800.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
+	TransformA.translation( MaVec3d( TentacleA, 0.0f ) + MaVec3d( X, 0.0f, 0.0f ) );
+
+	auto SpawnParamsA = ScnEntitySpawnParams( 
+			BcName::INVALID, "tentacles", "TentacleEntity_0",
+			TransformA, getParentEntity() );
+
+	SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
+		{
+			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+		};
+
+	ScnCore::pImpl()->spawnEntity( SpawnParamsA );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getNearestTentacle
 class GaTentacleComponent* GaGameComponent::getNearestTentacle( BcBool IncludeTargetted ) const
 {
@@ -515,6 +518,22 @@ MaVec2d GaGameComponent::getStructurePlacement( MaVec2d Position )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// haltonSequence
+BcF32 GaGameComponent::haltonSequence( BcU32 Index, BcU32 Base )
+{
+	BcF32 Result = 0;
+	BcF32 F = 1.0f;
+	BcU32 Idx = Index;
+	while( Idx > 0 )
+	{
+		F = F / static_cast< BcF32 >( Base );
+		Result = Result + F * ( Idx % Base );
+		Idx = Idx / Base;
+	}
+	return Result;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // spawnPopupText
 void GaGameComponent::spawnPopupText( MaVec2d Position, MaVec2d Velocity, BcF32 Time, const char* Format, ... )
 {
@@ -552,6 +571,7 @@ void GaGameComponent::setGameState( GameState GameState )
 				ScnCore::pImpl()->removeEntity( CurrentModal_ );
 				CurrentModal_ = nullptr;
 			}
+			spawnTentacles();
 			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
 			BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
 			break;

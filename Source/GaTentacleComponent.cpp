@@ -448,11 +448,11 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 
 	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, NoofSegments_ );
 	targetHome();
+	targetStructure();
 	calculateLevelStats( 1 );
 
 	TimerRandMult_ = BcRandom::Global.randRange( 0.8f, 1.2f );
 	TimerRandOffset_ = BcRandom::Global.randRange( 0.0f, BcPIMUL2 );
-
 
 	// Create render resources.
 	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 

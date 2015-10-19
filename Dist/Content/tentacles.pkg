@@ -14,7 +14,7 @@
 
 					"material" : "$(ScnMaterial:tentacle_data.tentacle_material)",
 					"movespeed" : 60.0,
-					"movespeedmultiplier" : 0.1,
+					"movespeedmultiplier" : 0.025,
 					"headdamping" : 0.5,
 					"headconstraintrigidity" : 0.25
 				}
