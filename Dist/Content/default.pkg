@@ -25,6 +25,13 @@
 				},
 
 				{
+					"type" : "ScnParticleSystemComponent",
+					"noofparticles" : 10000,
+					"islocalspace" : false,
+					"material" : "$(ScnMaterial:particle_data.material)"
+				},
+
+				{
 					"type" : "ScnMaterialComponent",
 					"name" : "WaterMaterial",
 					"material" : "$(ScnMaterial:water_data.material)",

@@ -21,6 +21,50 @@
 				},
 
 				{
+					"type" : "GaParticleEmitterComponent",
+
+					"startingeffect" : "trail",
+
+					"effects" : {
+						"trail" : {
+							"emitters" : [
+								{
+									"emissionrate" : 10.0,
+									"emitburst" : false,
+
+									"minlifetime" : 1.0,
+									"maxlifetime" : 1.0,
+
+
+									"emittershape" : "SPHERE",
+									"minemitterpos" : "0.0, 0.0, 0.0",
+									"maxemitterpos" : "0.0, 0.0, 0.0",
+
+									"velocityanglerange" : 2.0,
+									"velocityfunction" : "DIRECTION",
+									"velocitydirection" : "0.0, -32.0, 0.0",
+
+									"mincolour" : "1.0, 1.0, 1.0, 1.0",
+									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
+
+									"minscale" : "10.0, 10.0, 10.0",
+									"maxscale" : "10.0, 10.0, 10.0"
+								}
+							]
+						},
+
+						"explode" : {
+							"emitters" : [
+								{
+									"emissionrate" : 32.0,
+									"emitburst" : false
+								}
+							]
+						}
+					}
+				},
+
+				{
 					"type" : "ScnMaterialComponent",
 					"name" : "StructureMaterial",
 					"material" : "$(ScnMaterial:structures_data.material)",

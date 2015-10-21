@@ -88,6 +88,7 @@
 #include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaMenuComponent.h"
+#include "GaParticleEmitter.h"
 #include "GaPhysicsComponent.h"
 #include "GaProjectileComponent.h"
 #include "GaStructureComponent.h"
@@ -214,6 +215,9 @@ void AutoGenRegisterReflection()
 	GaMenuEntry::StaticRegisterClass();
 	GaMenuProcessor::StaticRegisterClass();
 	GaMenuComponent::StaticRegisterClass();
+	GaParticleEffect::StaticRegisterClass();
+	GaParticleEmitterProcessor::StaticRegisterClass();
+	GaParticleEmitterComponent::StaticRegisterClass();
 	GaPhysicsProcessor::StaticRegisterClass();
 	GaPhysicsComponent::StaticRegisterClass();
 	GaProjectileProcessor::StaticRegisterClass();
