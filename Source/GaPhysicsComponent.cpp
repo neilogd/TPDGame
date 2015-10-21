@@ -159,8 +159,8 @@ void GaPhysicsProcessor::updateSimulations( const ScnComponentList& Components )
 		ImGui::Text( "Constraints: %u",  NoofConstraints );
 		ImGui::Text( "Time spent: %f ms",  TimeTaken_ * 1000.0f );
 		ImGui::Separator();
-		ImGui::End();
 	}
+	ImGui::End();
 #endif // !PSY_PRODUCTION
 }
 

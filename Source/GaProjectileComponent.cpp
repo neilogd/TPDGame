@@ -1,4 +1,5 @@
 #include "GaProjectileComponent.h"
+#include "GaGameComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaPositionUtility.h"
 
@@ -97,6 +98,10 @@ void GaProjectileProcessor::update( const ScnComponentList& Components )
 		if( TotalVectorMagnitude < Component->DamageDistance_ )
 		{
 			Component->Target_->publish( gaEVT_PROJECTILE_HIT, GaProjectileEvent() );
+
+			// Score.
+			Component->getComponentAnyParentByType< GaGameComponent >()->addScore( 
+				Component->getParentEntity()->getWorldPosition().xy(), 10 );
 
 			// TODO: Send damage event.
 			ScnCore::pImpl()->removeEntity( Component->getParentEntity() );

@@ -70,6 +70,8 @@ public:
 	void setID( BcU32 ID ) { ID_ = ID; }
 	BcU32 getID() const { return ID_; }
 
+	BcU32 getLevel() const { return Level_; }
+
 	BcS64 getBuildCost() const { return BuildCost_; }
 	BcS64 getUpgradeCost() const { return CalculatedUpgradeCost_; }
 	GaStructureType getStructureType() const { return StructureType_; }

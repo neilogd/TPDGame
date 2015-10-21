@@ -488,13 +488,6 @@ class GaTentacleComponent* GaGameComponent::getNearestTentacle( BcBool IncludeTa
 }
 
 //////////////////////////////////////////////////////////////////////////
-// incScore
-void GaGameComponent::incScore( BcS64 NoofPoints )
-{
-	PlayerScore_ += NoofPoints;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // spendResources
 BcBool GaGameComponent::spendResources( BcS64 NoofResources )
 {
@@ -504,6 +497,14 @@ BcBool GaGameComponent::spendResources( BcS64 NoofResources )
 		return BcTrue;
 	}
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addScore
+void GaGameComponent::addScore( MaVec2d Position, BcS64 Score )
+{
+	PlayerScore_ += Score;
+	spawnPopupText( Position, MaVec2d( 0.0f, -32.0f ), 3.0f, "+%u", static_cast< BcU32 >( Score ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -561,19 +562,30 @@ void GaGameComponent::setGameState( GameState GameState )
 		switch( GameState_ )
 		{
 		case GaGameComponent::GameState::BUILD_PHASE:
-			Level_++;
-			getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
-			BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
+			{
+				Level_++;
+				getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
+				BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
+
+				// Score for each structure.
+				for( auto& Structure : Structures_ )
+				{
+					BcS64 Score = 10 * Structure->getLevel();
+					addScore( Structure->getParentEntity()->getWorldPosition().xy(), Score );
+				}
+			}
 			break;
 		case GaGameComponent::GameState::DEFEND_PHASE:
-			if( CurrentModal_ )
 			{
-				ScnCore::pImpl()->removeEntity( CurrentModal_ );
-				CurrentModal_ = nullptr;
+				if( CurrentModal_ )
+				{
+					ScnCore::pImpl()->removeEntity( CurrentModal_ );
+					CurrentModal_ = nullptr;
+				}
+				spawnTentacles();
+				getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
+				BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
 			}
-			spawnTentacles();
-			getParentEntity()->publish( gaEVT_GAME_BEGIN_DEFEND_PHASE, GaGameEvent( Level_ ) );
-			BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
 			break;
 		}
 	}
@@ -663,8 +675,8 @@ void GaGameComponent::update( BcF32 Tick )
 
 		}
 		ImGui::Separator();
-		ImGui::End();
 	}
+	ImGui::End();
 #endif
 }
 
@@ -704,14 +716,6 @@ void GaGameComponent::onIdle( BcF32 Tick )
 void GaGameComponent::onBuildPhase( BcF32 Tick )
 {
 	advanceGameTimer( Tick );
-
-	// TODO BUILD MENU.
-#if !PSY_PRODUCTION
-		if( ImGui::Begin( "Game Debug" ) )
-		{
-			ImGui::End();
-		}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

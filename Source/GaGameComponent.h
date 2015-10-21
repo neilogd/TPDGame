@@ -55,8 +55,8 @@ public:
 
 	BcS64 getPlayerScore() const { return PlayerScore_; }
 	BcS64 getPlayerResources() const { return PlayerResources_; }
-	void incScore( BcS64 NoofPoints );
 	BcBool spendResources( BcS64 NoofResources );
+	void addScore( MaVec2d Position, BcS64 Score );
 
 	MaVec2d getStructurePlacement( MaVec2d Position );
 
