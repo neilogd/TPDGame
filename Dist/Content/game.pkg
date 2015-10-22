@@ -6,6 +6,13 @@
 
 			"components" : [
 				{
+					"type" : "ScnParticleSystemComponent",
+					"noofparticles" : 4000,
+					"islocalspace" : false,
+					"material" : "$(ScnMaterial:particle_data.material)"
+				},
+
+				{
 					"type" : "GaGameComponent",
 					"level" : 0,
 
