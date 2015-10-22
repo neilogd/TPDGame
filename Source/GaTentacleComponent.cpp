@@ -446,7 +446,7 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
-	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 32.0f, 32.0f, NoofSegments_ );
+	setupComplexTopology( getParentEntity()->getWorldPosition().xy(), 48.0f, 48.0f, NoofSegments_ );
 	targetHome();
 	targetStructure();
 	calculateLevelStats( 1 );

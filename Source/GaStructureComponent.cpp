@@ -306,7 +306,7 @@ void GaStructureComponent::update( BcF32 Tick )
 		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
 		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
 #endif
-		if( Timer_ < CalculatedFireRate_ )
+		if( Timer_ <= CalculatedFireRate_ )
 		{
 			Timer_ += Tick;
 		}

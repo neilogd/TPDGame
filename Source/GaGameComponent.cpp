@@ -457,23 +457,34 @@ void GaGameComponent::spawnBases()
 // spawnTentacles
 void GaGameComponent::spawnTentacles()
 {
-	// Spawn tentacle thing.
-	auto X = haltonSequence( Level_, 2 ) * 960.0f - 480.0f;
+	// Kill all tentacles that exist currently.
+	for( auto Tentacle : Tentacles_ )
+	{
+		ScnCore::pImpl()->removeEntity( Tentacle->getParentEntity() );
+	}
+	Tentacles_.clear();
 
-	MaMat4d TransformA;
-	auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 800.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
-	TransformA.translation( MaVec3d( TentacleA, 0.0f ) + MaVec3d( X, 0.0f, 0.0f ) );
+	// Spawn tentacles. 1 extra per level to the max of 10.
+	BcU32 Tentacles = std::min( Level_ + 2, BcU32( 20 ) );
+	for( BcU32 Idx = 0; Idx < Tentacles; ++Idx )
+	{
+		auto X = haltonSequence( Idx + 1, 2 ) * 960.0f - 480.0f;
 
-	auto SpawnParamsA = ScnEntitySpawnParams( 
-			BcName::INVALID, "tentacles", "TentacleEntity_0",
-			TransformA, getParentEntity() );
+		MaMat4d TransformA;
+		auto TentacleA = GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 800.0f ), MaVec2d( 0.0f, 32.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
+		TransformA.translation( MaVec3d( TentacleA, 0.0f ) + MaVec3d( X, 0.0f, 0.0f ) );
 
-	SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
-		{
-			Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
-		};
+		auto SpawnParamsA = ScnEntitySpawnParams( 
+				BcName::INVALID, "tentacles", "TentacleEntity_0",
+				TransformA, getParentEntity() );
 
-	ScnCore::pImpl()->spawnEntity( SpawnParamsA );
+		SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
+			{
+				Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+			};
+
+		ScnCore::pImpl()->spawnEntity( SpawnParamsA );
+}
 }
 
 //////////////////////////////////////////////////////////////////////////

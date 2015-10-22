@@ -99,7 +99,7 @@ private:
 	MaVec2d SoftHeadPosition_ = MaVec2d( 0.0f, 0.0f );
 	MaVec2d TailPosition_ = MaVec2d( 0.0f, 0.0f );
 
-	BcU32 NoofSegments_ = 30;
+	BcU32 NoofSegments_ = 20;
 
 	class GaGameComponent* Game_ = nullptr;
 	class ScnCanvasComponent* Canvas_ = nullptr;
