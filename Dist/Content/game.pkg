@@ -15,6 +15,7 @@
 						"$(ScnEntity:structures.StructureEntity_1)",
 						"$(ScnEntity:structures.StructureEntity_2)"
 					],
+					"basetemplate" : "$(ScnEntity:structures.StructureEntity_3)",
 
 					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)",
 					"buttontemplate" : "$(ScnEntity:ui.ButtonEntity)"

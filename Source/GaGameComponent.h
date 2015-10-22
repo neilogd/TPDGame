@@ -45,11 +45,12 @@ public:
 
 	void createStructureButtons();
 	void setSelection( BcU32 SelectedIdx );
-	bool buildStructure( BcU32 StructureIdx, MaVec2d Position );
+	bool buildStructure( ScnEntity* StructureEntity, MaVec2d Position );
 	void destroyStructure( class GaStructureComponent* Structure );
 
 	void launchProjectile( class GaProjectileComponent* Projectile );
 
+	void spawnBases();
 	void spawnTentacles();
 	class GaTentacleComponent* getNearestTentacle( BcBool IncludeTargetted ) const;
 
@@ -77,6 +78,7 @@ private:
 	BcU32 Level_ = 0;
 	BcF32 GamePhaseTime_ = 30.0f;
 	std::vector< ScnEntity* > StructureTemplates_;
+	ScnEntity* BaseTemplate_ = nullptr;
 	ScnEntity* UpgradeMenuTemplate_ = nullptr;
 	ScnEntity* ButtonTemplate_ = nullptr;
 	ScnEntity* BuildUIEntity_ = nullptr;

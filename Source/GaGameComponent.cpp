@@ -92,6 +92,7 @@ void GaGameComponent::StaticRegisterClass()
 		new ReField( "Level_", &GaGameComponent::Level_, bcRFF_IMPORTER ),
 		new ReField( "GamePhaseTime_", &GaGameComponent::GamePhaseTime_, bcRFF_IMPORTER ),
 		new ReField( "StructureTemplates_", &GaGameComponent::StructureTemplates_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "BaseTemplate_", &GaGameComponent::BaseTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "UpgradeMenuTemplate_", &GaGameComponent::UpgradeMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "ButtonTemplate_", &GaGameComponent::ButtonTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 	};
@@ -140,6 +141,9 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	// Create buttons.
 	createStructureButtons();
 
+	// Spawn bases.
+	spawnBases();
+
 	// Subscribe to hotspot for hover.
 	Parent->subscribe( gaEVT_HOTSPOT_HOVER, this,
 		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
@@ -163,7 +167,8 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 				{
 					auto Position = getStructurePlacement( Event.Position_ );
 
-					buildStructure( SelectedStructureIdx_, Position );
+					auto StructureEntity = StructureTemplates_[ SelectedStructureIdx_ ];
+					buildStructure( StructureEntity, Position );
 					setSelection( BcErrorCode );
 				}
 			}
@@ -319,7 +324,7 @@ void GaGameComponent::setSelection( BcU32 SelectedIdx )
 
 //////////////////////////////////////////////////////////////////////////
 // buildStructure
-bool GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
+bool GaGameComponent::buildStructure( ScnEntity* StructureEntity, MaVec2d Position )
 {
 	BcAssert( ( Position - getStructurePlacement( Position ) ).magnitude() < 1e-6f );
 
@@ -334,7 +339,6 @@ bool GaGameComponent::buildStructure( BcU32 StructureIdx, MaVec2d Position )
 	}
 
 	// Setup new structure.
-	auto StructureEntity = StructureTemplates_[ StructureIdx ];
 	auto Structure = StructureEntity->getComponentByType< GaStructureComponent >();
 	BcAssert( Structure );
 
@@ -425,6 +429,28 @@ void GaGameComponent::launchProjectile( GaProjectileComponent* Projectile )
 {
 	Projectiles_.push_back( Projectile );
 	Projectile->addNotifier( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// spawnBases
+void GaGameComponent::spawnBases()
+{
+	// Spawn tentacle thing.
+	for( BcU32 Idx = 0; Idx < 2; ++Idx )
+	{
+		BcF32 X = ( haltonSequence( Idx + 2, 2 ) * 1280.0f - 640.0f );
+		if( X < 0.0f )
+		{
+			X -= 32.0f;
+		}
+		else
+		{
+			X += 32.0f;
+		}
+		auto Position = 
+			GaPositionUtility::GetScreenPosition( MaVec2d( 0.0f, 128.0f ), MaVec2d( 0.0f, 0.0f ), GaPositionUtility::TOP | GaPositionUtility::HCENTRE );
+		buildStructure( BaseTemplate_, getStructurePlacement( Position + MaVec2d( X, 0.0f ) ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

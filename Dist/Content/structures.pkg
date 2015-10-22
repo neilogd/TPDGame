@@ -163,6 +163,47 @@
 				}
 
 			]
+		},
+
+
+		{
+			"name"		:		"StructureEntity_3",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaStructureComponent",
+					"name" : "GaStructureComponent_3",
+
+					"structuretype" : "BASE",
+
+					"buildcost" : 0,
+					"baseupgradecost" : 0,
+					"levelupgradecost" : 0
+				},
+				{
+					"type" : "ScnMaterialComponent",
+					"name" : "StructureMaterial",
+					"material" : "$(ScnMaterial:structures_data.material)",
+					"permutation" : "2d"
+				},
+				{
+					"type" : "ScnSpriteComponent",
+					"materialname" : "StructureMaterial",
+					"position" : "0.0, 0.0",
+					"size" : "64.0, 64.0",
+					"centre" : true,
+					"colour" : "0.0, 0.0, 1.0, 1.0",
+					"index" : 3,
+					"layer" : 0
+				}
+
+			]
 		}
+
 	]
 }
