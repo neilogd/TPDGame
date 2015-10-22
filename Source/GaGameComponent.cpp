@@ -596,8 +596,11 @@ void GaGameComponent::setGameState( GameState GameState )
 				// Score for each structure.
 				for( auto& Structure : Structures_ )
 				{
-					BcS64 Score = 10 * Structure->getLevel();
-					addScore( Structure->getParentEntity()->getWorldPosition().xy(), Score );
+					BcS64 Score = Structure->getPointsPerPhase() * Structure->getLevel();
+					if( Score > 0 )
+					{
+						addScore( Structure->getParentEntity()->getWorldPosition().xy(), Score );
+					}
 				}
 			}
 			break;

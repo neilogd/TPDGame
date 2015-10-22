@@ -56,12 +56,13 @@
 					"structuretype" : "TURRET",
 					"templateprojectile" : "$(ScnEntity:projectiles.ProjectileEntity_0)",
 
-					"basefirerate" : 5.0,
-					"levelfireratemultiplier" : 0.9,
-
+					"pointsperphase" : 10,
 					"buildcost" : 20,
 					"baseupgradecost" : 15,
-					"levelupgradecost" : 10
+					"levelupgradecost" : 10,
+
+					"basefirerate" : 5.0,
+					"levelfireratemultiplier" : 0.9
 				},
 
 				{
@@ -99,6 +100,7 @@
 
 					"structuretype" : "RESOURCE",
 
+					"pointsperphase" : 10,
 					"buildcost" : 20,
 					"baseupgradecost" : 15,
 					"levelupgradecost" : 10,
@@ -141,6 +143,7 @@
 
 					"structuretype" : "POTATO",
 
+					"pointsperphase" : 10,
 					"buildcost" : 20,
 					"baseupgradecost" : 15,
 					"levelupgradecost" : 10
@@ -181,6 +184,7 @@
 
 					"structuretype" : "BASE",
 
+					"pointsperphase" : 0,
 					"buildcost" : 0,
 					"baseupgradecost" : 0,
 					"levelupgradecost" : 0

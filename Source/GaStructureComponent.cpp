@@ -100,6 +100,7 @@ void GaStructureComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Level_", &GaStructureComponent::Level_, bcRFF_IMPORTER ),
+		new ReField( "PointsPerPhase_", &GaStructureComponent::PointsPerPhase_, bcRFF_IMPORTER ),
 		new ReField( "Floating_", &GaStructureComponent::Floating_, bcRFF_IMPORTER ),
 		new ReField( "Active_", &GaStructureComponent::Active_, bcRFF_IMPORTER ),
 

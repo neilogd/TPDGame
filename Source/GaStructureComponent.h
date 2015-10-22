@@ -71,7 +71,7 @@ public:
 	BcU32 getID() const { return ID_; }
 
 	BcU32 getLevel() const { return Level_; }
-
+	BcS64 getPointsPerPhase() const { return PointsPerPhase_; }
 	BcS64 getBuildCost() const { return BuildCost_; }
 	BcS64 getUpgradeCost() const { return CalculatedUpgradeCost_; }
 	GaStructureType getStructureType() const { return StructureType_; }
@@ -80,6 +80,7 @@ private:
 	friend class GaStructureProcessor;
 
 	BcU32 Level_ = 0;
+	BcS64 PointsPerPhase_ = 0;
 	BcBool Floating_ = BcFalse;
 	BcBool Active_ = BcFalse;
 
