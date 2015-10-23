@@ -46,6 +46,12 @@
 							"text" : "Leaderboard",
 							"entitypackage" : "menus",
 							"entityname" : "LeaderboardMenu"
+						},
+
+						{
+							"text" : "Credits",
+							"entitypackage" : "menus",
+							"entityname" : "CreditsMenu"
 						}
 					]
 				}
@@ -92,6 +98,27 @@
 				}
 			]
 		},
+
+		// Credits menu.
+		{
+			"name" : "CreditsMenu",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Credits",
+					"entries" : [ 
+						{
+							"text" : "Back to Main Menu",
+							"entitypackage" : "menus",
+							"entityname" : "MainMenu"
+						}
+					]
+				}
+			]
+		},
+
 
 		// Upgrade dialog.
 		{
