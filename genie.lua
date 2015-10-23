@@ -5,6 +5,7 @@ dofile( "Psybrus/Scripts/Psybrus.lua" )
 PsySolutionGame( GAME.name )
 
 -- Build externals.
+dofile( "External/genie.lua" )
 dofile( "Psybrus/External/genie.lua" )
 
 -- Build engine.
