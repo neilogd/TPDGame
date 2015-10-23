@@ -7,6 +7,7 @@
 // GaStructureType
 enum class GaStructureType
 {
+	BASE,
 	TURRET,
 	RESOURCE,
 	POTATO,

@@ -94,6 +94,7 @@ void GaGameComponent::StaticRegisterClass()
 		new ReField( "StructureTemplates_", &GaGameComponent::StructureTemplates_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "BaseTemplate_", &GaGameComponent::BaseTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "UpgradeMenuTemplate_", &GaGameComponent::UpgradeMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "GameOverMenuTemplate_", &GaGameComponent::GameOverMenuTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "ButtonTemplate_", &GaGameComponent::ButtonTemplate_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 	};
 
@@ -352,6 +353,7 @@ bool GaGameComponent::buildStructure( ScnEntity* StructureEntity, MaVec2d Positi
 				auto Structure = Parent->getComponentByType< GaStructureComponent >();
 				BcAssert( Structure );
 				Structures_.push_back( Structure );
+				Structure->addNotifier( this );
 				Structure->setID( StructureID_++ );
 				Structure->setActive( BcTrue );
 			};
@@ -419,8 +421,26 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 {
 	BcAssert( Structure );
 	Structure->setActive( BcFalse );
-	Structures_.erase( std::find( Structures_.begin(), Structures_.end(), Structure ) );
+	auto FoundIt = std::find( Structures_.begin(), Structures_.end(), Structure );
+	if( FoundIt != Structures_.end() )
+	{
+		Structures_.erase( FoundIt );
+	}
 	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
+
+	// Check game over condition.
+	bool IsGameOver = true;
+	for( auto Structure : Structures_ )
+	{
+		if( Structure->getStructureType() == GaStructureType::BASE )
+		{
+			IsGameOver = false;
+		}
+	}
+	if( IsGameOver )
+	{
+		setGameState( GameState::GAME_OVER );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -480,7 +500,9 @@ void GaGameComponent::spawnTentacles()
 
 		SpawnParamsA.OnSpawn_ = [ this ]( ScnEntity* Parent )
 			{
-				Tentacles_.push_back( Parent->getComponentByType< GaTentacleComponent >() );
+				auto Tentacle = Parent->getComponentByType< GaTentacleComponent >();
+				Tentacles_.push_back( Tentacle );
+				Tentacle->addNotifier( this );
 			};
 
 		ScnCore::pImpl()->spawnEntity( SpawnParamsA );
@@ -627,6 +649,48 @@ void GaGameComponent::setGameState( GameState GameState )
 				BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
 			}
 			break;
+		case GaGameComponent::GameState::GAME_OVER:
+			{
+				if( CurrentModal_ )
+				{
+					ScnCore::pImpl()->removeEntity( CurrentModal_ );
+					CurrentModal_ = nullptr;
+				}
+				
+				CurrentModal_ = ScnCore::pImpl()->spawnEntity( 
+					ScnEntitySpawnParams(
+						BcName::INVALID,
+						GameOverMenuTemplate_,
+						MaMat4d(), getParentEntity() ) );
+				BcAssert( CurrentModal_ );
+
+				// Subscribe to modal buttons.
+				CurrentModal_->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+					[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+					{
+						const auto& Event = InEvent.get< GaHotspotEvent >();
+						if( Event.ID_ == 0 )
+						{
+							ScnCore::pImpl()->removeEntity( CurrentModal_ );
+							CurrentModal_ = nullptr;
+
+							ScnEntitySpawnParams SpawnParams( 
+									BcName::INVALID, "menus", "MainMenu",
+									MaMat4d(), getParentEntity()->getParentEntity() );
+							SpawnParams.OnSpawn_ = [ this ]( ScnEntity* Entity )
+								{
+									ScnCore::pImpl()->removeEntity( getParentEntity() );
+								};
+
+							ScnCore::pImpl()->spawnEntity( SpawnParams );
+						}
+						return evtRET_PASS;
+					} );
+
+				getParentEntity()->publish( gaEVT_GAME_BEGIN_GAME_OVER, GaGameEvent( Level_ ) );
+				BuildUIEntityTarget_ = MaVec2d( 0.0f, 240.0f );
+			}
+			break;
 		}
 	}
 }
@@ -701,6 +765,10 @@ void GaGameComponent::update( BcF32 Tick )
 		ImGui::Text( "Game state: %u", GameState_ );
 		ImGui::Text( "Input state: %u", InputState_ );
 		ImGui::Text( "Game level: %u", Level_ );
+		if( ImGui::Button( "Add 10 seconds" ) )
+		{
+			GameTimer_ += 10.0f;
+		}
 		if( ImGui::Button( "Back to Main Menu" ) )
 		{
 			ScnEntitySpawnParams SpawnParams( 

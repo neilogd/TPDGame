@@ -116,6 +116,27 @@
 					]
 				}
 			]
+		},
+
+		// Game over dialog.
+		{
+			"name" : "GameOverModal",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"type" : "GaMenuComponent",
+					"title" : "Game Over",
+					"modal" : true,
+					"entries" : [ 
+						{
+							"text" : "Main Menu",
+							"id": 0
+						}
+					]
+				}
+			]
 		}
+
 	]
 }

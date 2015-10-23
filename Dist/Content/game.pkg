@@ -25,6 +25,7 @@
 					"basetemplate" : "$(ScnEntity:structures.StructureEntity_3)",
 
 					"upgrademenutemplate" : "$(ScnEntity:menus.UpgradeModal)",
+					"gameovermenutemplate" : "$(ScnEntity:menus.GameOverModal)",
 					"buttontemplate" : "$(ScnEntity:ui.ButtonEntity)"
 				},
 

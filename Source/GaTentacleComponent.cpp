@@ -147,7 +147,6 @@ void GaTentacleProcessor::update( const ScnComponentList& Components )
 			ComponentPos += TargetVec;
 			Component->SoftHeadPosition_ = ComponentPos;
 
-
 			// Set first + last point mass to world position. Should be a soft constraint to make it move smoothly.
 
 			const auto LastIdx = Physics->getNoofPointMasses() - 1;
@@ -299,9 +298,14 @@ void GaTentacleComponent::setupComplexTopology( MaVec2d RootPosition, BcF32 Widt
 	PointMasses[ LastIdx ].InvMass_ = 0.0f;
 	PointMasses[ LastIdx ].DampingFactor_= 1.0f;
 
-
 	SoftHeadPosition_ = RootPosition;
 	TailPosition_ = PointMasses[ LastIdx ].CurrPosition_;
+
+	// Add handle for wobbling about.
+	//BcU32 MidIdx = PointMasses.size() / 2;
+	//PointMasses.emplace_back( PointMasses[ MidIdx ] );
+	//Constraints.emplace_back( GaPhysicsConstraint( MidIdx, PointMasses.size() - 1, -1.0f, 0.1f ) );
+
 
 	auto Physics = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics );

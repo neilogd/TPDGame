@@ -80,6 +80,7 @@ private:
 	std::vector< ScnEntity* > StructureTemplates_;
 	ScnEntity* BaseTemplate_ = nullptr;
 	ScnEntity* UpgradeMenuTemplate_ = nullptr;
+	ScnEntity* GameOverMenuTemplate_ = nullptr;
 	ScnEntity* ButtonTemplate_ = nullptr;
 	ScnEntity* BuildUIEntity_ = nullptr;
 

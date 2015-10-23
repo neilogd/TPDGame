@@ -90,6 +90,7 @@ void GaStructureComponent::StaticRegisterClass()
 {
 	ReEnumConstant* StructureTypeEnumConstants[] = 
 	{
+		new ReEnumConstant( "BASE", (BcU32)GaStructureType::BASE ),
 		new ReEnumConstant( "TURRET", (BcU32)GaStructureType::TURRET ),
 		new ReEnumConstant( "RESOURCE", (BcU32)GaStructureType::RESOURCE ),
 		new ReEnumConstant( "POTATO", (BcU32)GaStructureType::POTATO ),
@@ -310,10 +311,12 @@ void GaStructureComponent::update( BcF32 Tick )
 		{
 			Timer_ += Tick;
 		}
-	}	
+	}
 	
 	switch( StructureType_ )
 	{
+	case GaStructureType::BASE:
+		break;
 	case GaStructureType::TURRET:
 		if( Timer_ >= CalculatedFireRate_ )
 		{
