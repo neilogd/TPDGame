@@ -4,7 +4,9 @@
 	"desc" : "A tower defense game full of tentacles, and potatoes.",
 
 	"android" : {
-		"package" : "com.Psybrus.TPDGame",
+		"package" : "com.psybrus.TPDGame",
+		"app_id" : "1091577294454",
+		"keystore" : "Keystores/TPDGame.keystore",
 		"version_code" : "1",
 		"version_name" : "1.0",
 		"es_version" : "0x00020000",
@@ -15,6 +17,13 @@
 			"android.permission.READ_EXTERNAL_STORAGE",
 			"android.permission.WRITE_EXTERNAL_STORAGE",
 			"android.permission.INTERNET"
+		],
+		"metadata" : {
+			"com.google.android.gms.games.APP_ID" : "@string/app_id",
+			"com.google.android.gms.version" : "@integer/google_play_services_version"
+		},
+		"references" : [
+			"External/google-play-services_lib"
 		]
 	},
 

@@ -27,10 +27,10 @@ void PsyLaunchGame()
 	MainEntityParams.OnSpawn_ = []( ScnEntity* Entity )
 		{
 			// Once main entity has spawned, create menu.
-			ScnCore::pImpl()->spawnEntity( 
-				ScnEntitySpawnParams( 
-					BcName::INVALID, "menus", "SplashMenu",
-					MaMat4d(), Entity ) );
+			ScnEntitySpawnParams MenuEntityParams( 
+				BcName::INVALID, "menus", "SplashMenu",
+				MaMat4d(), Entity );
+			ScnCore::pImpl()->spawnEntity( MenuEntityParams );
 		};
 	
 	// Spawn main entity.

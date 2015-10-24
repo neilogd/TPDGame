@@ -85,6 +85,7 @@
 #include "System/Sound/SsCore.h"
 #include "System/SysKernel.h"
 #include "System/SysSystem.h"
+#include "GaGPGComponent.h"
 #include "GaGameComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaMenuComponent.h"
@@ -208,6 +209,7 @@ void AutoGenRegisterReflection()
 	SsCore::StaticRegisterClass();
 	SysKernel::StaticRegisterClass();
 	SysSystem::StaticRegisterClass();
+	GaGPGComponent::StaticRegisterClass();
 	GaGameProcessor::StaticRegisterClass();
 	GaGameComponent::StaticRegisterClass();
 	GaHotspotProcessor::StaticRegisterClass();

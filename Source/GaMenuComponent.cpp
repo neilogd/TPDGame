@@ -1,4 +1,5 @@
 #include "GaMenuComponent.h"
+#include "GaGPGComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaPositionUtility.h"
 
@@ -244,6 +245,32 @@ void GaMenuComponent::onAttach( ScnEntityWeakRef Parent )
 			}						
 			return evtRET_PASS;
 		} );
+
+
+	// HACK.
+	Parent->subscribe( gaEVT_HOTSPOT_PRESSED, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )->eEvtReturn
+		{
+			const auto& Event = InEvent.get< GaHotspotEvent >();
+			if( Event.ID_ == 1000 )
+			{
+				auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
+				if( GPGComponent )
+				{
+					GPGComponent->openLeaderboards();
+				}
+			}
+			if( Event.ID_ == 2000 )
+			{
+				auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
+				if( GPGComponent )
+				{
+					GPGComponent->openAchievements();
+				}
+			}
+			return evtRET_PASS;
+		} );
+
 
 	Super::onAttach( Parent );
 }

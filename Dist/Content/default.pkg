@@ -15,6 +15,10 @@
 				},
 
 				{
+					"type" : "GaGPGComponent"
+				},
+
+				{
 					"type" : "ScnCanvasComponent",
 					"clear" : true,
 					"noofvertices" : 4096,

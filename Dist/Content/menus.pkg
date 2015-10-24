@@ -37,15 +37,13 @@
 						},
 
 						{
-							"text" : "Achievements",
-							"entitypackage" : "menus",
-							"entityname" : "AchievementMenu"
+							"text" : "Leaderboards",
+							"id": 1000
 						},
 
 						{
-							"text" : "Leaderboard",
-							"entitypackage" : "menus",
-							"entityname" : "LeaderboardMenu"
+							"text" : "Achievements",
+							"id": 2000
 						},
 
 						{
