@@ -1,3 +1,6 @@
 [submodule "Psybrus"]
 	path = Psybrus
 	url = https://github.com/Psybrus/Psybrus
+[submodule "Keystores"]
+	path = Keystores
+	url = https://github.com/neilogd/Keystores
