@@ -1,4 +1,5 @@
 #include "GaGameComponent.h"
+#include "GaGPGComponent.h"
 #include "GaHotspotComponent.h"
 #include "GaProjectileComponent.h"
 #include "GaStructureComponent.h"
@@ -623,6 +624,17 @@ void GaGameComponent::setGameState( GameState GameState )
 		case GaGameComponent::GameState::BUILD_PHASE:
 			{
 				Level_++;
+
+				// Unlock FIRST_NIGHT achievement.
+				if( Level_ == 2 )
+				{
+					auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
+					if( GPGComponent )
+					{
+						GPGComponent->unlockAchievement( GaGPGAchievement::FIRST_NIGHT );
+					}
+				}
+
 				getParentEntity()->publish( gaEVT_GAME_BEGIN_BUILD_PHASE, GaGameEvent( Level_ ) );
 				BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
 
@@ -692,6 +704,15 @@ void GaGameComponent::setGameState( GameState GameState )
 			}
 			break;
 		}
+	}
+
+	// Submit scores for leaderboards.
+	auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
+	if( GPGComponent )
+	{
+		GPGComponent->submitScore( GaGPGLeaderboard::LEVEL, Level_ );
+		GPGComponent->submitScore( GaGPGLeaderboard::SCORE, PlayerScore_ );
+		GPGComponent->submitScore( GaGPGLeaderboard::RESOURCES, PlayerResources_ );
 	}
 }
 

@@ -43,9 +43,16 @@ void GaGPGComponent::openLeaderboards()
 
 	if( GameServices_ )
 	{
-		PSY_LOG( "INFO: ShowAllUIBlocking!" );
+		PSY_LOG( "INFO: ShowAllUI!" );
 		GameServices_->Leaderboards().ShowAllUIBlocking();
-	}
+#if 0
+		GameServices_->Leaderboards().ShowAllUI(
+			[]( UIStatus const & )
+			{
+				// TODO: Handle status.
+			} );
+#endif
+}
 #else
 	PSY_LOG( "ERROR: GaGPGComponent::openLeaderboards unimplemented!" );
 #endif
@@ -64,11 +71,33 @@ void GaGPGComponent::openAchievements()
 
 	if( GameServices_ )
 	{
-		PSY_LOG( "INFO: ShowAllUIBlocking!" );
+		PSY_LOG( "INFO: ShowAllUI!" );
 		GameServices_->Achievements().ShowAllUIBlocking();
+#if 0
+		GameServices_->Achievements().ShowAllUI(
+			[]( UIStatus const & )
+			{
+				// TODO: Handle status.
+			} );
+#endif
 	}
 #else
 	PSY_LOG( "ERROR: GaGPGComponent::openAchievements unimplemented!" );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// submitScore
+void GaGPGComponent::submitScore( const char* ID, BcS64 Score )
+{
+#if PLATFORM_ANDROID
+	PSY_LOG( "INFO: GaGPGComponent::submitScore!" );
+	if( GameServices_ )
+	{
+		GameServices_->Leaderboards().SubmitScore( ID, static_cast< BcU64 >( Score ) );
+	}
+#else
+	PSY_LOG( "ERROR: GaGPGComponent::submitScore unimplemented!" );
 #endif
 }
 

@@ -29,16 +29,16 @@ enum GaGPGEvents
 // GaGPGLeaderboard
 namespace GaGPGLeaderboard
 {
-	static const char* Score = "CgkI9tzOuOIfEAIQAA";
-	static const char* Level = "CgkI9tzOuOIfEAIQAQ";
-	static const char* Resources = "CgkI9tzOuOIfEAIQAg";
+	static const char* SCORE = "CgkI9tzOuOIfEAIQAA";
+	static const char* LEVEL = "CgkI9tzOuOIfEAIQAQ";
+	static const char* RESOURCES = "CgkI9tzOuOIfEAIQAg";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // GaGPGAchievement
 namespace GaGPGAchievement
 {
-	static const char* FirstNight = "CgkI9tzOuOIfEAIQBA";
+	static const char* FIRST_NIGHT = "CgkI9tzOuOIfEAIQBA";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +68,13 @@ public:
 	 * Open achievements.
 	 */
 	void openAchievements();
+
+	/**
+	 * Submit score.
+	 * @param ID ID of the leaderboard.
+	 * @param Value Score to submit.
+	 */
+	void submitScore( const char* ID, BcS64 Score );
 
 	/**
 	 * Unlock achivement.
