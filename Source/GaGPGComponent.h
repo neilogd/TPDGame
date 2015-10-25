@@ -39,6 +39,10 @@ namespace GaGPGLeaderboard
 namespace GaGPGAchievement
 {
 	static const char* FIRST_NIGHT = "CgkI9tzOuOIfEAIQBA";
+	static const char* TOUGH_TEN = "CgkI9tzOuOIfEAIQCg";
+	static const char* TWISTED_TWENTY = "CgkI9tzOuOIfEAIQCw";
+	static const char* THIRSTY_THIRTY = "CgkI9tzOuOIfEAIQDA";
+	static const char* INFURIATING_FIFTY = "CgkI9tzOuOIfEAIQDQ";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

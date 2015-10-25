@@ -512,7 +512,7 @@ void GaGameComponent::spawnTentacles()
 
 //////////////////////////////////////////////////////////////////////////
 // getNearestTentacle
-class GaTentacleComponent* GaGameComponent::getNearestTentacle( BcBool IncludeTargetted ) const
+class GaTentacleComponent* GaGameComponent::getNearestTentacle( MaVec2d Position, BcBool IncludeTargetted ) const
 {
 	GaTentacleComponent* NearestTentacle = nullptr;
 	if( Tentacles_.size() > 0 )
@@ -534,7 +534,9 @@ class GaTentacleComponent* GaGameComponent::getNearestTentacle( BcBool IncludeTa
 
 				if( FoundProjectile == Projectiles_.end() )
 				{
-					auto Distance = ( getParentEntity()->getWorldPosition().xy() - Tentacle->getParentEntity()->getWorldPosition().xy() ).magnitudeSquared();
+					auto Distance = ( Position - Tentacle->getParentEntity()->getWorldPosition().xy() ).magnitudeSquared();
+					PSY_LOG( "Distance to tentacle: %f", Distance );
+					PSY_LOG( "Distance to tentacle: %f", Distance );
 					if( Distance < NearestDistance )
 					{
 						NearestTentacle = Tentacle;
@@ -625,13 +627,29 @@ void GaGameComponent::setGameState( GameState GameState )
 			{
 				Level_++;
 
-				// Unlock FIRST_NIGHT achievement.
-				if( Level_ == 2 )
+				// Unlock achievement for level progress.
+				auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
+				if( GPGComponent )
 				{
-					auto GPGComponent = getParentEntity()->getComponentAnyParentByType< GaGPGComponent >();
-					if( GPGComponent )
+					if( Level_ == 2 )
 					{
 						GPGComponent->unlockAchievement( GaGPGAchievement::FIRST_NIGHT );
+					}
+					else if( Level_ == 10 )
+					{
+						GPGComponent->unlockAchievement( GaGPGAchievement::TOUGH_TEN );
+					}
+					else if( Level_ == 20 )
+					{
+						GPGComponent->unlockAchievement( GaGPGAchievement::TWISTED_TWENTY );
+					}
+					else if( Level_ == 30 )
+					{
+						GPGComponent->unlockAchievement( GaGPGAchievement::THIRSTY_THIRTY );
+					}
+					else if( Level_ == 50 )
+					{
+						GPGComponent->unlockAchievement( GaGPGAchievement::INFURIATING_FIFTY );
 					}
 				}
 

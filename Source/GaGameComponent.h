@@ -52,7 +52,7 @@ public:
 
 	void spawnBases();
 	void spawnTentacles();
-	class GaTentacleComponent* getNearestTentacle( BcBool IncludeTargetted ) const;
+	class GaTentacleComponent* getNearestTentacle( MaVec2d Position, BcBool IncludeTargetted ) const;
 
 	BcS64 getPlayerScore() const { return PlayerScore_; }
 	BcS64 getPlayerResources() const { return PlayerResources_; }
