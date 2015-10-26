@@ -58,6 +58,8 @@ public:
 		MaVec3d VelocityDirection_ = MaVec3d( 1.0f, 0.0f, 0.0f );
 		/// Velocity angle range.
 		BcF32 VelocityAngleRange_ = 0.0f;
+		/// Velocity random multiplier.
+		BcF32 VelocityMultiplier_ = 0.0f;
 
 		/// Min lifetime.
 		BcF32 MinLifetime_ = 1.0f;

@@ -30,6 +30,7 @@ void GaParticleEffect::StaticRegisterClass()
 			new ReField( "VelocityFunction_", &Emitter::VelocityFunction_, bcRFF_IMPORTER ),
 			new ReField( "VelocityDirection_", &Emitter::VelocityDirection_, bcRFF_IMPORTER ),
 			new ReField( "VelocityAngleRange_", &Emitter::VelocityAngleRange_, bcRFF_IMPORTER ),
+			new ReField( "VelocityMultiplier_", &Emitter::VelocityMultiplier_, bcRFF_IMPORTER ),
 			new ReField( "MinLifetime_", &Emitter::MinLifetime_, bcRFF_IMPORTER ),
 			new ReField( "MaxLifetime_", &Emitter::MaxLifetime_, bcRFF_IMPORTER ),
 			new ReField( "MinScale_", &Emitter::MinScale_, bcRFF_IMPORTER ),
@@ -181,25 +182,20 @@ void GaParticleEmitterProcessor::emitParticles( const ScnComponentList& Componen
 						case GaParticleEmitterVelocityFunction::CENTRE_RELATIVE:
 							{
 								MaVec3d Velocity( Particle->Position_ - CentrePosition );
-								BcF32 Multiplier = 1.0f;//BcMax( 1.0f, Velocity.dot( Emitter.VelocityDirection_ ) + Emitter.VelocityAngleRange_ ) ;
-								if( Multiplier < 1e-6f )
-								{
-									Velocity = MaVec3d(
+								MaVec3d RandomVelocity = MaVec3d(
 										RNG_.randRealRange( -1.0f, 1.0f ),
 										RNG_.randRealRange( -1.0f, 1.0f ),
 										RNG_.randRealRange( -1.0f, 1.0f ) ).normal();
-								}
-								Particle->Velocity_ = Velocity * Multiplier;
+								Particle->Velocity_ = Velocity + ( RandomVelocity * Emitter.VelocityMultiplier_ );
 							}
 							break;
 						case GaParticleEmitterVelocityFunction::DIRECTION:
 							{
-								// TODO.
-								MaVec3d Velocity(
-									RNG_.randRealRange( -1.0f, 1.0f ),
-									RNG_.randRealRange( -1.0f, 1.0f ),
-									RNG_.randRealRange( -1.0f, 1.0f ) );
-								Particle->Velocity_ = Emitter.VelocityDirection_;
+								MaVec3d RandomVelocity = MaVec3d(
+										RNG_.randRealRange( -1.0f, 1.0f ),
+										RNG_.randRealRange( -1.0f, 1.0f ),
+										RNG_.randRealRange( -1.0f, 1.0f ) ).normal();
+								Particle->Velocity_ = Emitter.VelocityDirection_ + ( RandomVelocity * Emitter.VelocityMultiplier_ );
 							}
 							break;
 						}
@@ -222,7 +218,6 @@ void GaParticleEmitterProcessor::emitParticles( const ScnComponentList& Componen
 					EmissionDelta += EmissionIncr;
 				}
 			}
-
 		}
 	}
 }
