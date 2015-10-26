@@ -48,7 +48,10 @@
 									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
 
 									"minscale" : "10.0, 10.0, 10.0",
-									"maxscale" : "10.0, 10.0, 10.0"
+									"maxscale" : "10.0, 10.0, 10.0",
+
+									"mintextureindex" : 8,
+									"maxtextureindex" : 11
 								}
 							]
 						},

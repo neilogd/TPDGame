@@ -1,10 +1,14 @@
 {
 	"resources" : [
 		{
-			"type"			: "ScnTexture",
-			"name"			: "particle_texture",
+			"type" : "ScnTextureAtlas",
+			"name" : "particle_texture",
 
-			"source"		: "Content/Textures/particle0.png",
+			"tileatlas" : true,
+			"tilewidth" : 64,
+			"tileheight" : 64,
+
+			"source" : "Content/Textures/particles.png",
 
 			"format" : "R8G8B8A8"
 		},
@@ -37,11 +41,11 @@
 		},
 
 		{
-			"type"			: "ScnMaterial",
-			"name"			: "material",
+			"type" : "ScnMaterial",
+			"name" : "material",
 
 			// Shader
-			"shader"		: "$(ScnShader:this.particle_shader)",
+			"shader" : "$(ScnShader:this.particle_shader)",
 
 			// Textures
 			"textures"		: {

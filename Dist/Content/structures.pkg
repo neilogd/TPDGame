@@ -41,7 +41,10 @@
 									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
 
 									"minscale" : "10.0, 10.0, 10.0",
-									"maxscale" : "100.0, 100.0, 100.0"
+									"maxscale" : "100.0, 100.0, 100.0",
+
+									"mintextureindex" : 4,
+									"maxtextureindex" : 7
 								}
 							]
 						}
@@ -125,7 +128,11 @@
 									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
 
 									"minscale" : "10.0, 10.0, 10.0",
-									"maxscale" : "100.0, 100.0, 100.0"
+									"maxscale" : "100.0, 100.0, 100.0",
+
+									"mintextureindex" : 4,
+									"maxtextureindex" : 7
+
 								}
 							]
 						}
@@ -207,7 +214,11 @@
 									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
 
 									"minscale" : "10.0, 10.0, 10.0",
-									"maxscale" : "100.0, 100.0, 100.0"
+									"maxscale" : "100.0, 100.0, 100.0",
+
+									"mintextureindex" : 4,
+									"maxtextureindex" : 7
+
 								}
 							]
 						}
