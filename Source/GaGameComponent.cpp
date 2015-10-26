@@ -1,6 +1,7 @@
 #include "GaGameComponent.h"
 #include "GaGPGComponent.h"
 #include "GaHotspotComponent.h"
+#include "GaParticleEmitter.h"
 #include "GaProjectileComponent.h"
 #include "GaStructureComponent.h"
 #include "GaTentacleComponent.h"
@@ -423,27 +424,32 @@ bool GaGameComponent::buildStructure( ScnEntity* StructureEntity, MaVec2d Positi
 // destroyStructure
 void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 {
-	BcAssert( Structure );
-	Structure->setActive( BcFalse );
 	auto FoundIt = std::find( Structures_.begin(), Structures_.end(), Structure );
 	if( FoundIt != Structures_.end() )
 	{
-		Structures_.erase( FoundIt );
-	}
-	ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
+		BcAssert( Structure );
+		Structure->setActive( BcFalse );
+		auto Particles = Structure->getComponentByType< GaParticleEmitterComponent >();
+		BcAssert( Particles );
+		Particles->startEffect( "explode" );
 
-	// Check game over condition.
-	bool IsGameOver = true;
-	for( auto Structure : Structures_ )
-	{
-		if( Structure->getStructureType() == GaStructureType::BASE )
+		Structures_.erase( FoundIt );
+
+		ScnCore::pImpl()->removeEntity( Structure->getParentEntity() );
+
+		// Check game over condition.
+		bool IsGameOver = true;
+		for( auto Structure : Structures_ )
 		{
-			IsGameOver = false;
+			if( Structure->getStructureType() == GaStructureType::BASE )
+			{
+				IsGameOver = false;
+			}
 		}
-	}
-	if( IsGameOver )
-	{
-		setGameState( GameState::GAME_OVER );
+		if( IsGameOver )
+		{
+			setGameState( GameState::GAME_OVER );
+		}
 	}
 }
 

@@ -136,24 +136,28 @@ void GaParticleEmitterProcessor::emitParticles( const ScnComponentList& Componen
 			// NOTE: Only *needs* to be done once.
 			Component->ParticleSystem_->setTransform( Component->Canvas_->getMatrix() );
 			Emitter.EmissionTimer_ += Tick * Emitter.EmissionRate_;
-			if( Emitter.EmissionTimer_ > 1.0f )
+			if( Emitter.EmissionRate_ > 0.0f && ( Emitter.EmissionTimer_ > 1.0f || Emitter.EmitBurst_ ) )
 			{
-				const BcF32 EmissionIncr = 1.0f / Emitter.EmissionTimer_;
-				const BcU32 NoofEmitters = static_cast< BcU32 >( Emitter.EmissionTimer_ );
-				Emitter.EmissionTimer_ -= static_cast< BcF32 >( NoofEmitters );
+				const BcU32 NoofParticles = Emitter.EmitBurst_ ? Emitter.EmissionRate_ : static_cast< BcU32 >( Emitter.EmissionTimer_ );
+				const BcF32 EmissionIncr = 1.0f / static_cast< BcF32 >( NoofParticles );
+				if( Emitter.EmitBurst_ )
+				{
+					Emitter.EmissionRate_ -= NoofParticles;
+					Emitter.LastEmissionPosition_ = BasePosition;
+				}
+				Emitter.EmissionTimer_ -= static_cast< BcF32 >( NoofParticles );
 
 				const MaVec3d StartPosition = Emitter.LastEmissionPosition_;
-				const MaVec3d EndPosition = BasePosition;
 				Emitter.LastEmissionPosition_ = BasePosition;
 				BcF32 EmissionDelta = 0.0f;
 				
 				ScnParticle* Particle = nullptr;
-				for( BcU32 Idx = 0; Idx < NoofEmitters; ++Idx )
+				for( BcU32 Idx = 0; Idx < NoofParticles; ++Idx )
 				{
 					if( Component->ParticleSystem_->allocParticle( Particle ) )
 					{
 						MaVec3d CentrePosition;
-						CentrePosition.lerp( StartPosition, EndPosition, EmissionDelta );
+						CentrePosition.lerp( StartPosition, BasePosition, EmissionDelta );
 						switch( Emitter.EmitterShape_ )
 						{
 						case GaParticleEmitterShape::SPHERE:

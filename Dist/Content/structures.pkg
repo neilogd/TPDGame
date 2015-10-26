@@ -9,11 +9,10 @@
 					"type" : "GaPhysicsComponent"
 				},
 
-
 				{
 					"type" : "GaParticleEmitterComponent",
 
-					"startingeffect" : "explode",
+					"startingeffect" : "",
 
 					"effects" : {
 						"trail" : {
@@ -28,11 +27,11 @@
 						"explode" : {
 							"emitters" : [
 								{
-									"emissionrate" : 32.0,
-									"emitburst" : false,
+									"emissionrate" : 256.0,
+									"emitburst" : true,
 
 									"minlifetime" : 2.0,
-									"maxlifetime" : 10.0,
+									"maxlifetime" : 3.0,
 
 									"minemitterpos" : "10.0, 10.0, 0.0",
 									"maxemitterpos" : "10.0, 10.0, 0.0",
@@ -42,7 +41,7 @@
 									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
 
 									"minscale" : "10.0, 10.0, 10.0",
-									"maxscale" : "10.0, 10.0, 10.0"
+									"maxscale" : "100.0, 100.0, 100.0"
 								}
 							]
 						}
@@ -95,6 +94,45 @@
 				},
 
 				{
+					"type" : "GaParticleEmitterComponent",
+
+					"startingeffect" : "",
+
+					"effects" : {
+						"trail" : {
+							"emitters" : [
+								{
+									"emissionrate" : 5.0,
+									"emitburst" : false
+								}
+							]
+						},
+
+						"explode" : {
+							"emitters" : [
+								{
+									"emissionrate" : 256.0,
+									"emitburst" : true,
+
+									"minlifetime" : 2.0,
+									"maxlifetime" : 3.0,
+
+									"minemitterpos" : "10.0, 10.0, 0.0",
+									"maxemitterpos" : "10.0, 10.0, 0.0",
+									"velocityanglerange" : 0.0,
+
+									"mincolour" : "1.0, 1.0, 1.0, 1.0",
+									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
+
+									"minscale" : "10.0, 10.0, 10.0",
+									"maxscale" : "100.0, 100.0, 100.0"
+								}
+							]
+						}
+					}
+				},
+
+				{
 					"type" : "GaStructureComponent",
 					"name" : "GaStructureComponent_1",
 
@@ -135,6 +173,45 @@
 			"components" : [
 				{
 					"type" : "GaPhysicsComponent"
+				},
+
+				{
+					"type" : "GaParticleEmitterComponent",
+
+					"startingeffect" : "",
+
+					"effects" : {
+						"trail" : {
+							"emitters" : [
+								{
+									"emissionrate" : 5.0,
+									"emitburst" : false
+								}
+							]
+						},
+
+						"explode" : {
+							"emitters" : [
+								{
+									"emissionrate" : 256.0,
+									"emitburst" : true,
+
+									"minlifetime" : 2.0,
+									"maxlifetime" : 3.0,
+
+									"minemitterpos" : "10.0, 10.0, 0.0",
+									"maxemitterpos" : "10.0, 10.0, 0.0",
+									"velocityanglerange" : 0.0,
+
+									"mincolour" : "1.0, 1.0, 1.0, 1.0",
+									"maxcolour" : "1.0, 1.0, 1.0, 0.0",
+
+									"minscale" : "10.0, 10.0, 10.0",
+									"maxscale" : "100.0, 100.0, 100.0"
+								}
+							]
+						}
+					}
 				},
 
 				{
