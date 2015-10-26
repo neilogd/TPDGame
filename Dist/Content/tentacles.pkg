@@ -17,6 +17,46 @@
 					"movespeedmultiplier" : 0.025,
 					"headdamping" : 0.5,
 					"headconstraintrigidity" : 0.25
+				},
+
+				{
+					"type" : "GaParticleEmitterComponent",
+
+					"startingeffect" : "bleeding",
+
+					"effects" : {
+						"bleeding" : {
+							"emitters" : [
+								{
+									"emissionrate" : 10.0,
+									"emitburst" : false,
+
+									"minlifetime" : 1.0,
+									"maxlifetime" : 2.0,
+
+
+									"emittershape" : "SPHERE",
+									"minemitterpos" : "0.0, 0.0, 0.0",
+									"maxemitterpos" : "0.0, 0.0, 0.0",
+
+									"velocityanglerange" : 2.0,
+									"velocityfunction" : "DIRECTION",
+									"velocitydirection" : "0.0, 8.0, 0.0",
+									"velocitymultiplier" : 16.0,
+
+									"rotationrange" : 6.0,
+									"minrotationvelocity" : -1.0,
+									"maxrotationvelocity" : 1.0,
+
+									"mincolour" : "1.0, 0.0, 0.0, 1.0",
+									"maxcolour" : "1.0, 0.0, 0.0, 0.0",
+
+									"minscale" : "8.0, 8.0, 8.0",
+									"maxscale" : "128.0, 128.0, 128.0"
+								}
+							]
+						}
+					}
 				}
 			]
 		},

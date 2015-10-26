@@ -31,7 +31,12 @@
 
 				{
 					"type" : "ScnEntity",
-					"name" : "UIEntity"
+					"name" : "BuildUIEntity"
+				},
+
+				{
+					"type" : "ScnEntity",
+					"name" : "PlayerUIEntity"
 				}
 			]
 		}
