@@ -2,6 +2,7 @@
 #include "GaGameComponent.h"
 #include "GaPhysicsComponent.h"
 #include "GaStructureComponent.h"
+#include "GaParticleEmitter.h"
 
 #include "GaEvents.h"
 
@@ -446,6 +447,9 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 	getParentEntity()->subscribe( gaEVT_PROJECTILE_HIT, this, 
 		[ this ]( EvtID, const EvtBaseEvent & Event )
 		{
+			auto Particles = getParentEntity()->getComponentByType< GaParticleEmitterComponent >();
+			Particles->startEffect( "bleeding" );
+
 			targetHome();
 			return evtRET_PASS;
 		} );
