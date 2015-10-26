@@ -130,8 +130,11 @@ void GaGameComponent::onAttach( ScnEntityWeakRef Parent )
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
 
-	BuildUIEntity_ = Parent->getComponentByType< ScnEntity >( "UIEntity" );
+	BuildUIEntity_ = Parent->getComponentByType< ScnEntity >( "BuildUIEntity" );
 	BcAssert( BuildUIEntity_ );
+
+	PlayerUIEntity_ = Parent->getComponentByType< ScnEntity >( "PlayerUIEntity" );
+	BcAssert( PlayerUIEntity_ );
 
 	// Spawn hotspot for placement area.
 	Parent->attach< GaHotspotComponent >( 
@@ -764,9 +767,54 @@ void GaGameComponent::update( BcF32 Tick )
 	}
 	
 	// Move UI.
-	auto UIEntityPosition = BuildUIEntity_->getLocalPosition().xy();
-	UIEntityPosition = UIEntityPosition * 0.9f + BuildUIEntityTarget_ * 0.1f;
-	BuildUIEntity_->setLocalPosition( MaVec3d( UIEntityPosition, 0.0f ) );
+	auto BuildUIEntityPosition = BuildUIEntity_->getLocalPosition().xy();
+	BuildUIEntityPosition = BuildUIEntityPosition * 0.9f + BuildUIEntityTarget_ * 0.1f;
+	BuildUIEntity_->setLocalPosition( MaVec3d( BuildUIEntityPosition, 0.0f ) );
+
+	// Render player UI.
+	auto PlayerUIEntityPosition = PlayerUIEntity_->getLocalPosition().xy();
+	ScnFontDrawParams PlayerUIDrawParams;
+	PlayerUIDrawParams.setSize( 30.0f );
+	PlayerUIDrawParams.setMargin( 8.0f );
+	PlayerUIDrawParams.setTextSettings( MaVec4d( 0.4f, 0.41f, 0.0f, 0.0f ) );
+	PlayerUIDrawParams.setTextColour( RsColour::BLACK );
+	PlayerUIDrawParams.setLayer( 1000 );
+
+	MaVec2d Position( 0.0f, 0.0f );
+	MaVec2d Size( 0.0f, 0.0f );
+
+	OsClient* Client = OsCore::pImpl()->getClient( 0 );
+	MaVec2d Dimensions( Client->getWidth(), Client->getHeight() );
+	BcChar Buffer[ 1024 ] = { 0 };
+
+	PlayerUIDrawParams.setAlignment( ScnFontAlignment::LEFT | ScnFontAlignment::TOP );
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "Level: %u", Level_ );
+	Size = Font_->drawText( Canvas_, PlayerUIDrawParams,
+				Position, Dimensions, Buffer );
+	Position += MaVec2d( 0.0f, Size.y() );
+
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "Score: %lld", PlayerScore_ );
+	Size = Font_->drawText( Canvas_, PlayerUIDrawParams,
+				Position, Dimensions, Buffer );
+
+	Position += MaVec2d( 0.0f, Size.y() );
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "Resources: %lld", PlayerResources_ );
+	Size = Font_->drawText( Canvas_, PlayerUIDrawParams,
+				Position, Dimensions, Buffer );
+	Position += MaVec2d( 0.0f, Size.y() );
+
+	// Timer bar.
+	Position = MaVec2d( 0.0f, 0.0f );
+	PlayerUIDrawParams.setAlignment( ScnFontAlignment::HCENTRE | ScnFontAlignment::TOP );
+	const BcF32 HalfPhaseTime = GamePhaseTime_ * 0.5f;
+	const BcF32 PhaseTimeLeft = HalfPhaseTime - std::fmodf( GameTimer_, HalfPhaseTime );
+	if( PhaseTimeLeft <= 5.0f )
+	{
+		PlayerUIDrawParams.setTextColour( RsColour( 0.75f, 0.0f, 0.0f, 1.0f ) );
+	}
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "%.3f", PhaseTimeLeft );
+	Size = Font_->drawText( Canvas_, PlayerUIDrawParams,
+				Position, Dimensions, Buffer );
 
 	// Render popup text.
 	ScnFontDrawParams PopupDrawParams;

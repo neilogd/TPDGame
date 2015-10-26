@@ -83,6 +83,7 @@ private:
 	ScnEntity* GameOverMenuTemplate_ = nullptr;
 	ScnEntity* ButtonTemplate_ = nullptr;
 	ScnEntity* BuildUIEntity_ = nullptr;
+	ScnEntity* PlayerUIEntity_ = nullptr;
 
 	MaVec2d BuildUIEntityTarget_ = MaVec2d( 0.0f, 0.0f );
 
