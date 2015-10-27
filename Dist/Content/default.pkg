@@ -35,6 +35,7 @@
 					"material" : "$(ScnMaterial:particle_data.material)"
 				},
 
+/*
 				{
 					"type" : "ScnMaterialComponent",
 					"name" : "WaterMaterial",
@@ -51,6 +52,12 @@
 					"colour" : "1.0, 1.0, 1.0, 1.0",
 					"index" : 0,
 					"layer" : -1000
+				},
+*/
+				{
+					"type" : "GaWaterComponent",
+					"material" : "$(ScnMaterial:water_data.material)",
+					"noofsegments" : 128
 				},
 
 				{

@@ -94,6 +94,7 @@
 #include "GaProjectileComponent.h"
 #include "GaStructureComponent.h"
 #include "GaTentacleComponent.h"
+#include "GaWaterComponent.h"
 void AutoGenRegisterReflection()
 {
 	MaAABB::StaticRegisterClass();
@@ -229,4 +230,5 @@ void AutoGenRegisterReflection()
 	GaTentacleUniformBlockData::StaticRegisterClass();
 	GaTentacleProcessor::StaticRegisterClass();
 	GaTentacleComponent::StaticRegisterClass();
+	GaWaterComponent::StaticRegisterClass();
 }

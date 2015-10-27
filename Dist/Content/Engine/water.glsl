@@ -28,15 +28,15 @@ void vertexMain()
     vec4 Offset3 = normalize( vec4(  0.0784761,  0.1739212, 0.0, 0.0 ) );
     vec4 Offset4 = normalize( vec4(  0.0000000,  1.0000000, 0.0, 0.0 ) );
 
-    VsTexCoord0 = ( InTexCoord_ + Offset0 * ViewTime_.wwww * 0.2 );
-    VsTexCoord1 = ( InTexCoord_ + Offset1 * ViewTime_.wwww * 0.2 );
-    VsTexCoord2 = ( InTexCoord_ + Offset2 * ViewTime_.wwww * 0.2 );
-    VsTexCoord3 = ( InTexCoord_ + Offset3 * ViewTime_.wwww * 0.2 );
+    VsTexCoord0 = ( InTexCoord_ + Offset0 * -ViewTime_.wwww * 0.2 );
+    VsTexCoord1 = ( InTexCoord_ + Offset1 * -ViewTime_.wwww * 0.2 );
+    VsTexCoord2 = ( InTexCoord_ + Offset2 * -ViewTime_.wwww * 0.2 );
+    VsTexCoord3 = ( InTexCoord_ + Offset3 * -ViewTime_.wwww * 0.2 );
 
-    VsTexCoord4 = ( InTexCoord_ + Offset4 * ViewTime_.wwww * 0.2 );
-    VsTexCoord5 = ( InTexCoord_ + Offset4 * ViewTime_.zzzz * 0.2 );
-    VsTexCoord6 = ( InTexCoord_ + Offset4 * ViewTime_.yyyy * 0.2 );
-    VsTexCoord7 = ( InTexCoord_ + Offset4 * ViewTime_.xxxx * 0.2 );
+    VsTexCoord4 = ( InTexCoord_ + Offset4 * -ViewTime_.wwww * 0.2 );
+    VsTexCoord5 = ( InTexCoord_ + Offset4 * -ViewTime_.zzzz * 0.2 );
+    VsTexCoord6 = ( InTexCoord_ + Offset4 * -ViewTime_.yyyy * 0.2 );
+    VsTexCoord7 = ( InTexCoord_ + Offset4 * -ViewTime_.xxxx * 0.2 );
     VsColour0 = InColour_;
 }
 
