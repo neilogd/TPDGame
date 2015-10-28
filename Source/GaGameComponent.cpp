@@ -338,7 +338,7 @@ bool GaGameComponent::buildStructure( ScnEntity* StructureEntity, MaVec2d Positi
 	for( auto Structure : Structures_ )
 	{
 		auto StructurePos = Structure->getParentEntity()->getWorldPosition().xy();
-		if( ( Position - StructurePos ).magnitude() < 1e-6f )
+		if( ( Position - StructurePos ).magnitude() < 64.0f )
 		{
 			return false;
 		}
@@ -430,8 +430,14 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 		BcAssert( Structure );
 		Structure->setActive( BcFalse );
 		auto Particles = Structure->getComponentByType< GaParticleEmitterComponent >();
-		BcAssert( Particles );
-		Particles->startEffect( "explode" );
+		if( Particles )
+		{
+			Particles->startEffect( "explode" );
+		}
+		else
+		{
+			BcPrintf( "ERROR: No particles found on structure." );
+		}
 
 		Structures_.erase( FoundIt );
 

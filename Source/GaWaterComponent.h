@@ -17,6 +17,7 @@ public:
 	virtual ~GaWaterComponent();
 
 	void update( BcF32 Tick );
+	MaVec2d getWaterSurfacePosition( MaVec2d WorldPosition ) const;
 
 	void render( ScnRenderContext & RenderContext ) override;
 	MaAABB getAABB() const override;
@@ -43,6 +44,9 @@ private:
 	RsBufferUPtr VertexBuffer_;
 	RsBufferUPtr UniformBuffer_;
 	ScnShaderObjectUniformBlockData UniformBlock_;
+
+	MaMat4d ClipTransform_;
+	MaMat4d InvClipTransform_;
 
 };
 

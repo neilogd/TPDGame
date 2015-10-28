@@ -4,6 +4,7 @@
 #include "GaPhysicsComponent.h"
 #include "GaProjectileComponent.h"
 #include "GaTentacleComponent.h"
+#include "GaWaterComponent.h"
 #include "GaPositionUtility.h"
 
 #include "GaEvents.h"
@@ -163,7 +164,7 @@ void GaStructureComponent::setupTopology()
 	MaVec2d Position = getParentEntity()->getWorldPosition().xy();
 
 	// Central point + external constraints.
-	PointMasses.emplace_back( GaPhysicsPointMass( Position, 0.5f, 1.0f / PointMass ) );
+	PointMasses.emplace_back( GaPhysicsPointMass( Position, 0.05f, 1.0f / PointMass ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 0, 1, -1.0f, 0.1f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 0, 2, -1.0f, 0.1f ) );
 	Constraints.emplace_back( GaPhysicsConstraint( 0, 3, -1.0f, 0.1f ) );
@@ -172,7 +173,7 @@ void GaStructureComponent::setupTopology()
 	for( size_t Idx = 0; Idx < 3; ++Idx )
 	{
 		const MaVec2d Offset( Offsets[ Idx ] );
-		PointMasses.emplace_back( GaPhysicsPointMass( Position + Offset, 0.5f, 1.0f / PointMass ) );
+		PointMasses.emplace_back( GaPhysicsPointMass( Position + Offset, 0.01f, 1.0f / PointMass ) );
 		Constraints.emplace_back( GaPhysicsConstraint( 1 + Idx, 1 + ( ( Idx + 1 ) % 3 ), -1.0f, 1.0f ) );
 	}
 
@@ -291,22 +292,47 @@ BcU32 GaStructureComponent::incLevel()
 // update
 void GaStructureComponent::update( BcF32 Tick )
 {
+	// Get water.
+	auto Water = getParentEntity()->getComponentAnyParentByType< GaWaterComponent >();
+
 	// If we have point masses, calculate position.
 	const size_t NoofPointMasses = Physics_->getNoofPointMasses();
 	if( Physics_->getNoofPointMasses() > 0 )
 	{
 #if 1
+		Physics_->setPointMassAcceleration( 1, MaVec2d( 0.0f, 500.0f ) );
+		for( size_t Idx = 2; Idx <= 3; ++Idx )
+		{
+			const auto& PointMass = Physics_->getPointMass( Idx );
+			auto WaterPosition = Water->getWaterSurfacePosition( PointMass.CurrPosition_ );
+			BcF32 Diff = PointMass.CurrPosition_.y() - WaterPosition.y();
+
+			if( Diff > 1.0f )
+			{
+				Physics_->setPointMassAcceleration( Idx, MaVec2d( 0.0f, -500.0f ) );
+			}
+			else
+			{
+				Physics_->setPointMassAcceleration( Idx, MaVec2d( 0.0f, 0.0f ) );
+			}
+		}
+
 		MaVec2d Centre( 0.0f, 0.0f );
 		for( size_t Idx = 1; Idx < NoofPointMasses; ++Idx )
 		{
-			Centre += Physics_->getPointMassPosition( Idx );
+			const auto& PointMass = Physics_->getPointMass( Idx );
+			Centre += PointMass.CurrPosition_;
 		}
+
 		Centre /= static_cast< BcF32 >( NoofPointMasses - 1 );
 		getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
 #else
 		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
 		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
 #endif
+
+
+
 		if( Timer_ <= CalculatedFireRate_ )
 		{
 			Timer_ += Tick;

@@ -1,10 +1,25 @@
 #include "GaWaterComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
+#include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Renderer/RsContext.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Utility
+namespace
+{
+	BcF32 GetNoise( BcF32 Time )
+	{
+		return 0.25f + 
+			BcSin( Time * 0.0625f ) * 0.03f +
+			BcSin( Time * 0.25f ) * 0.015f +
+			BcSin( Time * 4.0f ) * 0.005f +
+			BcSin( Time * 8.0f ) * 0.002f;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -63,11 +78,7 @@ void GaWaterComponent::update( BcF32 Tick )
 			MaVec2d TexCoordB(  0.0f,  1.0f );
 			for( BcU32 Idx = 0; Idx < NoofSegments; ++Idx )
 			{
-				PositionT.y( 
-					0.25f + 
-					BcSin( WaveX * 0.25f ) * 0.02f +
-					BcSin( WaveX * 4.0f ) * 0.005f +
-					BcSin( WaveX * 8.0f ) * 0.002f );
+				PositionT.y( GetNoise( WaveX ) );
 				WaveX += WaveAdvance;
 
 				Vertices->Position_ = PositionT;
@@ -89,11 +100,29 @@ void GaWaterComponent::update( BcF32 Tick )
 
 	// Timer.
 	Timer_ += Tick;
-	const auto WrappingValue = BcPIMUL2 * 100.0;
+	const auto WrappingValue = BcPIMUL2 * 4096.0f;
 	if( Timer_ > WrappingValue )
 	{
 		Timer_ -= WrappingValue;
 	}
+
+	//
+	auto Canvas = getParentEntity()->getComponentAnyParentByType< ScnCanvasComponent >();
+	BcAssert( Canvas );
+	ClipTransform_ = Canvas->getMatrix();
+	InvClipTransform_  = ClipTransform_;
+	InvClipTransform_.inverse();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWaterSurfacePosition
+MaVec2d GaWaterComponent::getWaterSurfacePosition( MaVec2d WorldPosition ) const
+{
+	auto NDC = WorldPosition * ClipTransform_;
+
+	auto Noise = GetNoise( Timer_ + ( NDC.x() + 1.0f * BcPIMUL2 ) );
+
+	return MaVec2d( NDC.x(), Noise ) * InvClipTransform_;
 }
 
 //////////////////////////////////////////////////////////////////////////
