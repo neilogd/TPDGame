@@ -55,9 +55,20 @@ PSY_SAMPLER_2D( DiffuseTex );
 
 void pixelMain()
 {
-	vec4 TextColour = PSY_SAMPLE_2D( DiffuseTex, VsTexCoord0.xy );
-	float TextFactor = smoothstep( TextSettings_.x, TextSettings_.y, TextColour.a );
-	fragColour = float4( TextColour_.xyz, TextFactor * TextColour_.w ) * VsColour0;
+	vec4 Texture = PSY_SAMPLE_2D( DiffuseTex, VsTexCoord0.xy );
+
+	float BorderOffset = -0.2;
+
+	// Border colour hack.
+	float BorderFactor = smoothstep( TextSettings_.x + BorderOffset, TextSettings_.y + BorderOffset, Texture.a );
+	vec4 BorderColour = float4( BorderColour_.xyz, BorderFactor );
+
+	float TextFactor = smoothstep( TextSettings_.x, TextSettings_.y, Texture.a );
+	vec4 TextColour = float4( TextColour_.xyz, TextFactor ) * VsColour0;
+
+	// Blend.
+	fragColour.xyz = ( BorderColour.xyz * ( 1.0 - TextColour.w ) ) + ( TextColour.xyz * TextColour.w );
+	fragColour.w = max( TextColour.w, BorderColour.w ) * TextColour_.w;
 }
 
 #endif

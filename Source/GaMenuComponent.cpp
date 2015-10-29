@@ -112,7 +112,7 @@ void GaMenuProcessor::drawMenus( const ScnComponentList& Components )
 			TitleSize,
 			Component->Title_ );
 
-		FontParams.setSize( 32.0f );
+		FontParams.setSize( 40.0f );
 
 		// Draw entries.
 		for( size_t Idx = 0; Idx < Component->Entries_.size(); ++Idx )

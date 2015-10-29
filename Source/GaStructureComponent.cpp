@@ -155,12 +155,21 @@ void GaStructureComponent::setupTopology()
 	// TODO: Calculate this *properly* instead of drunkenly guessing?
 	const BcF32 Size = 64.0f;
 	const BcF32 PointMass = 1.0f;
-	const MaVec2d Offsets[3] = 
+	MaVec2d Offsets[3] = 
 	{
-		MaVec2d( 0.0f, 1.0f ) * Size * 0.5f,
-		MaVec2d( -0.9f, -0.5f ) * Size * 0.5f,
-		MaVec2d( 0.9f, -0.5f ) * Size * 0.5f,
+		MaVec2d( 0.0f, -1.0f ) * Size * 0.5f,
+		MaVec2d( -0.9f, 0.5f ) * Size * 0.5f,
+		MaVec2d( 0.9f, 0.5f ) * Size * 0.5f,
 	};
+	/*
+	if( StructureType_ == GaStructureType::BASE )
+	{
+		Offsets[0] = MaVec2d( 0.0f, -1.0f ) * Size * 0.5f;
+		Offsets[1] = MaVec2d( -0.9f, 1.5f ) * Size * 0.5f;
+		Offsets[2] = MaVec2d( 0.9f, 1.5f ) * Size * 0.5f;
+	}
+	*/
+
 	MaVec2d Position = getParentEntity()->getWorldPosition().xy();
 
 	// Central point + external constraints.
@@ -176,6 +185,10 @@ void GaStructureComponent::setupTopology()
 		PointMasses.emplace_back( GaPhysicsPointMass( Position + Offset, 0.01f, 1.0f / PointMass ) );
 		Constraints.emplace_back( GaPhysicsConstraint( 1 + Idx, 1 + ( ( Idx + 1 ) % 3 ), -1.0f, 1.0f ) );
 	}
+
+	WeightedPoints_.push_back( 1 );
+	BouyantPoints_.push_back( 2 );
+	BouyantPoints_.push_back( 3 );
 
 	Physics_ = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics_ );
@@ -212,6 +225,8 @@ void GaStructureComponent::onAttach( ScnEntityWeakRef Parent )
 	BcAssert( Canvas_ );
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 	BcAssert( Font_ );
+	Sprite_ = Parent->getComponentAnyParentByType< ScnSpriteComponent >();
+	BcAssert( Sprite_ );
 	Physics_ = getParentEntity()->getComponentByType< GaPhysicsComponent >();
 	BcAssert( Physics_ );
 	Game_ = getParentEntity()->getComponentAnyParentByType< GaGameComponent >();
@@ -299,39 +314,38 @@ void GaStructureComponent::update( BcF32 Tick )
 	const size_t NoofPointMasses = Physics_->getNoofPointMasses();
 	if( Physics_->getNoofPointMasses() > 0 )
 	{
-#if 1
-		Physics_->setPointMassAcceleration( 1, MaVec2d( 0.0f, 500.0f ) );
-		for( size_t Idx = 2; Idx <= 3; ++Idx )
+		// Points with weight.
+		const BcF32 Gravity = 500.0f;
+		for( auto WeightedPoint : WeightedPoints_ )
 		{
-			const auto& PointMass = Physics_->getPointMass( Idx );
+			Physics_->setPointMassAcceleration( WeightedPoint, MaVec2d( 0.0f, Gravity ) );
+		}
+
+		// Points with bouyancy.
+		for( auto BouyantPoint : BouyantPoints_ )
+		{
+			const auto& PointMass = Physics_->getPointMass( BouyantPoint );
 			auto WaterPosition = Water->getWaterSurfacePosition( PointMass.CurrPosition_ );
 			BcF32 Diff = PointMass.CurrPosition_.y() - WaterPosition.y();
 
 			if( Diff > 1.0f )
 			{
-				Physics_->setPointMassAcceleration( Idx, MaVec2d( 0.0f, -500.0f ) );
+				Physics_->setPointMassAcceleration( BouyantPoint, MaVec2d( 0.0f, -Gravity ) );
 			}
 			else
 			{
-				Physics_->setPointMassAcceleration( Idx, MaVec2d( 0.0f, 0.0f ) );
+				Physics_->setPointMassAcceleration( BouyantPoint, MaVec2d( 0.0f, Gravity ) );
 			}
 		}
 
-		MaVec2d Centre( 0.0f, 0.0f );
-		for( size_t Idx = 1; Idx < NoofPointMasses; ++Idx )
-		{
-			const auto& PointMass = Physics_->getPointMass( Idx );
-			Centre += PointMass.CurrPosition_;
-		}
-
-		Centre /= static_cast< BcF32 >( NoofPointMasses - 1 );
+		// Position.
+		MaVec2d Centre( Physics_->getPointMassPosition( 0 ) );
 		getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
-#else
-		MaVec2d Centre( Component->Physics_->getPointMassPosition( 0 ) );
-		Component->getParentEntity()->setLocalPosition( MaVec3d( Centre, 0.0f ) );
-#endif
 
-
+		// Rotation.
+		MaVec2d Direction = Centre - Physics_->getPointMassPosition( 1 ); 
+		BcF32 Angle = std::atan2f( Direction.x(), Direction.y() );
+		Sprite_->setRotation( Angle );
 
 		if( Timer_ <= CalculatedFireRate_ )
 		{

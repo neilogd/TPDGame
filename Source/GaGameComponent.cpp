@@ -37,6 +37,10 @@ GaGameProcessor::GaGameProcessor():
 	ScnComponentProcessor( 
 		{
 			ScnComponentProcessFuncEntry(
+				"Screen shake",
+				ScnComponentPriority::CANVAS_CLEAR + 1,
+				std::bind( &GaGameProcessor::updateScreenShake, this, std::placeholders::_1 ) ),
+			ScnComponentProcessFuncEntry(
 				"Update game state",
 				ScnComponentPriority::DEFAULT_UPDATE,
 				std::bind( &GaGameProcessor::update, this, std::placeholders::_1 ) )
@@ -64,6 +68,22 @@ void GaGameProcessor::initialise()
 void GaGameProcessor::shutdown()
 {
 	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+void GaGameProcessor::updateScreenShake( const ScnComponentList& Components )
+{
+	BcAssert( Components.size() <= 1 );
+
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	for( auto InComponent : Components )
+	{
+		BcAssert( InComponent->isTypeOf< GaGameComponent >() );
+		auto* Component = static_cast< GaGameComponent* >( InComponent.get() );
+
+		Component->updateScreenShake( Tick );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -213,6 +233,8 @@ void GaGameComponent::onObjectDeleted( class ReObject* Object )
 	if( Projectile != Projectiles_.end() )
 	{
 		Projectiles_.erase( Projectile );
+
+		ScreenShakeAmount_ = std::min( ScreenShakeAmount_ + 32.0f, 32.0f );
 	}
 }
 
@@ -427,6 +449,8 @@ void GaGameComponent::destroyStructure( GaStructureComponent* Structure )
 	auto FoundIt = std::find( Structures_.begin(), Structures_.end(), Structure );
 	if( FoundIt != Structures_.end() )
 	{
+		ScreenShakeAmount_ = std::min( ScreenShakeAmount_ + 32.0f, 32.0f );
+
 		BcAssert( Structure );
 		Structure->setActive( BcFalse );
 		auto Particles = Structure->getComponentByType< GaParticleEmitterComponent >();
@@ -759,6 +783,27 @@ void GaGameComponent::setInputState( InputState InputState )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// updateScreenShake
+void GaGameComponent::updateScreenShake( BcF32 Tick )
+{
+	if( ScreenShakeAmount_ > 1e-6f )
+	{
+		MaMat4d ScreenShakeTransform;
+
+		BcF32 NoiseTimer = GameTimer_ * 64.0f;
+		ScreenShakeTransform.translation( 
+			MaVec3d(
+				BcRandom::Global.interpolatedNoise( NoiseTimer, 8192 ),
+				BcRandom::Global.interpolatedNoise( NoiseTimer + 4096.0f, 8192 ),
+				0.0f ) * ScreenShakeAmount_ );
+
+		// TODO: Don't push to matrix. We won't use matrix for sprites later.
+		Canvas_->pushMatrix( ScreenShakeTransform );
+		ScreenShakeAmount_ *= ScreenShakeMultiplier_;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 void GaGameComponent::update( BcF32 Tick )
 {
@@ -786,10 +831,10 @@ void GaGameComponent::update( BcF32 Tick )
 	// Render player UI.
 	auto PlayerUIEntityPosition = PlayerUIEntity_->getLocalPosition().xy();
 	ScnFontDrawParams PlayerUIDrawParams;
-	PlayerUIDrawParams.setSize( 30.0f );
+	PlayerUIDrawParams.setSize( 40.0f );
 	PlayerUIDrawParams.setMargin( 8.0f );
-	PlayerUIDrawParams.setTextSettings( MaVec4d( 0.4f, 0.41f, 0.0f, 0.0f ) );
-	PlayerUIDrawParams.setTextColour( RsColour::BLACK );
+	PlayerUIDrawParams.setTextSettings( MaVec4d( 0.4f, 0.6f, 0.0f, 0.0f ) );
+	PlayerUIDrawParams.setTextColour( RsColour::WHITE );
 	PlayerUIDrawParams.setLayer( 1000 );
 
 	MaVec2d Position( 0.0f, 0.0f );
@@ -831,10 +876,10 @@ void GaGameComponent::update( BcF32 Tick )
 	// Render popup text.
 	ScnFontDrawParams PopupDrawParams;
 	PopupDrawParams.setAlignment( ScnFontAlignment::HCENTRE | ScnFontAlignment::VCENTRE );
-	PopupDrawParams.setSize( 20.0f );
+	PopupDrawParams.setSize( 30.0f );
 	PopupDrawParams.setMargin( 0.0f );
-	PopupDrawParams.setTextSettings( MaVec4d( 0.35f, 0.5f, 0.0f, 0.0f ) );
-	PopupDrawParams.setTextColour( RsColour::BLACK );
+	PopupDrawParams.setTextSettings( MaVec4d( 0.4f, 0.6f, 0.0f, 0.0f ) );
+	PopupDrawParams.setTextColour( RsColour::WHITE );
 	PopupDrawParams.setLayer( 1000 );
 	for( auto It = PopupText_.begin(); It != PopupText_.end(); )
 	{

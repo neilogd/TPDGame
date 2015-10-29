@@ -108,9 +108,13 @@ private:
 
 	BcF32 Timer_ = 0.0f;
 	MaVec2d AbsolutePosition_;
+
+	std::vector< BcU32 > WeightedPoints_;
+	std::vector< BcU32 > BouyantPoints_;
  
 	class ScnCanvasComponent* Canvas_ = nullptr;
 	class ScnFontComponent* Font_ = nullptr;
+	class ScnSpriteComponent* Sprite_ = nullptr;
 	class GaPhysicsComponent* Physics_ = nullptr;
 	class GaGameComponent* Game_ = nullptr;
 

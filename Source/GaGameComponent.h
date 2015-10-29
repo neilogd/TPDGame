@@ -17,6 +17,7 @@ public:
 	void initialise() override;
 	void shutdown() override;
 
+	void updateScreenShake( const ScnComponentList& Components );
 	void update( const ScnComponentList& Components );
 
 private:
@@ -66,6 +67,7 @@ public:
 	void spawnPopupText( MaVec2d Position, MaVec2d Velocity, BcF32 Time, const char* Format, ... );
 
 private:
+	void updateScreenShake( BcF32 Tick );
 	void update( BcF32 Tick );
 	void advanceGameTimer( BcF32 Tick );
 	void onIdle( BcF32 Tick );
@@ -108,6 +110,10 @@ private:
 
 	void setGameState( GameState GameState );
 	void setInputState( InputState InputState );
+
+	// Screen shake.
+	BcF32 ScreenShakeAmount_ = 0.0f;
+	BcF32 ScreenShakeMultiplier_ = 0.9f;
 
 	// Player specific.
 	BcS64 PlayerScore_ = 0;

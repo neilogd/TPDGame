@@ -110,8 +110,7 @@ void pixelTexturedMain()
 	float InvSrcAlpha = 1.0 - SrcAlpha;
 	fragColor = WaterColour * InvSrcAlpha + FoamAdditive * SrcAlpha;
 #else
-	float ColourMult = min( 1.0, 0.5 + WaveSample0.x );
-	vec4 WaterColour = vec4( vec3( 0.6, 0.8, 1.0 ) * MulSample * ColourMult, 0.5 ) * VsColour0;
+	vec4 WaterColour = vec4( 0.6, 0.8, 1.0, 1.0 ) * VsColour0;
 	fragColor = WaterColour;
 #endif
 }
