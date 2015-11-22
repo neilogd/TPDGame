@@ -121,7 +121,7 @@ private:
 	class ScnMaterialComponent* MaterialComponent_ = nullptr;
 	RsVertexDeclarationUPtr VertexDecl_;
 	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
 	RsBufferUPtr UniformBuffer_;
 	GaTentacleUniformBlockData UniformBlock_;
-	SysFence RenderFence_;
 };

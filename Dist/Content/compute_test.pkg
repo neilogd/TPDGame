@@ -1,0 +1,18 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnShader",
+			"name"			: "compute_shader",
+			"usepermutations" : false,
+
+			"sources" 		: {
+				"GLSL_420" : "Content/Engine/compute.glsl",
+			},
+
+			"entrypoints"		: {
+				"compute" : "main"
+			}
+		}
+	]
+}
+
