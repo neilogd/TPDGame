@@ -42,6 +42,7 @@ private:
 
 	RsVertexDeclarationUPtr VertexDecl_;
 	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
 	RsBufferUPtr UniformBuffer_;
 	ScnShaderObjectUniformBlockData UniformBlock_;
 

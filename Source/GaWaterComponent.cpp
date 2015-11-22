@@ -134,18 +134,26 @@ void GaWaterComponent::render( ScnRenderContext & RenderContext )
 	{
 		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
 		MaterialComponent_->setObjectUniformBlock( UniformBuffer_.get() );
-		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
 
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ 
-				VertexDecl = VertexDecl_.get(),
-				VertexBuffer = VertexBuffer_.get(),
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = MaterialComponent_->getProgramBinding(),
+				RenderState = MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
 				NoofSegments = NoofSegments_
-			] ( RsContext* Context )
+			] 
+			( RsContext* Context )
 			{
-				Context->setVertexDeclaration( VertexDecl );
-				Context->setVertexBuffer( 0, VertexBuffer, sizeof( Vertex ) );
-				Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, NoofSegments * 2 );
+				Context->drawPrimitives(
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					&Viewport,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, NoofSegments * 2 );
 			} );
 	}
 }
@@ -166,23 +174,29 @@ void GaWaterComponent::onAttach( ScnEntityWeakRef Parent )
 		BcName::INVALID,
 		Material_, ScnShaderPermutationFlags::MESH_STATIC_2D );
 
-	VertexDecl_.reset( RsCore::pImpl()->createVertexDeclaration(
+	VertexDecl_ = RsCore::pImpl()->createVertexDeclaration(
 		RsVertexDeclarationDesc( 2 )
 			.addElement( RsVertexElement( 0, 0, 4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
 			.addElement( RsVertexElement( 0, 16, 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
-			.addElement( RsVertexElement( 0, 24, 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ) ) );
+			.addElement( RsVertexElement( 0, 24, 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ),
+		getFullName().c_str() );
 
-	VertexBuffer_.reset( RsCore::pImpl()->createBuffer(
+	VertexBuffer_ = RsCore::pImpl()->createBuffer(
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STREAM,
-			sizeof( Vertex ) * NoofSegments_ * 2 ) ) );
+			sizeof( Vertex ) * NoofSegments_ * 2 ), getFullName().c_str() );
 			
-	UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDecl_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( Vertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
+
+	UniformBuffer_ = RsCore::pImpl()->createBuffer(
 		RsBufferDesc( 
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( UniformBlock_ ) ) ) );
+			sizeof( UniformBlock_ ) ), getFullName().c_str() );
 
 	Super::onAttach( Parent );
 }

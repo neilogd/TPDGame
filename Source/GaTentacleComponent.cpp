@@ -467,22 +467,30 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 		BcName::INVALID,
 		Material_, ScnShaderPermutationFlags::MESH_STATIC_2D );
 	
-	VertexDecl_.reset( RsCore::pImpl()->createVertexDeclaration(
+	VertexDecl_ = RsCore::pImpl()->createVertexDeclaration(
 		RsVertexDeclarationDesc( 2 )
 			.addElement( RsVertexElement( 0, 0, 4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
-			.addElement( RsVertexElement( 0, 16, 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ) ) );
+			.addElement( RsVertexElement( 0, 16, 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ),
+		getFullName().c_str() );
 
-	VertexBuffer_.reset( RsCore::pImpl()->createBuffer(
+	VertexBuffer_ = RsCore::pImpl()->createBuffer(
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STATIC,
-			sizeof( Vertex ) * NoofSegments_ * 4 ) ) );
+			sizeof( Vertex ) * NoofSegments_ * 4 ),
+		getFullName().c_str() );
+
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDecl_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( Vertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 			
-	UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
+	UniformBuffer_ = RsCore::pImpl()->createBuffer(
 		RsBufferDesc( 
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( UniformBlock_ ) ) ) );
+			sizeof( UniformBlock_ ) ),
+		getFullName().c_str() );
 
 	MaterialComponent_->setUniformBlock( "GaTentacleUniformBlockData", UniformBuffer_.get() );
 
@@ -547,7 +555,6 @@ void GaTentacleComponent::onAttach( ScnEntityWeakRef Parent )
 // onDetach
 void GaTentacleComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	RenderFence_.wait();
 	VertexDecl_.reset();
 	VertexBuffer_.reset();
 	UniformBuffer_.reset();
@@ -576,17 +583,27 @@ void GaTentacleComponent::render( ScnRenderContext & RenderContext )
 	RsRenderSort Sort = RenderContext.Sort_;
 	if( MaterialComponent_ )
 	{
-		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
 		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
 
-		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this ]( RsContext* Context )
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = MaterialComponent_->getProgramBinding(),
+				RenderState = MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
+				NoofSegments = NoofSegments_
+			]
+			( RsContext* Context )
 			{
-				Context->setVertexDeclaration( VertexDecl_.get() );
-				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( Vertex ) );
-				Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, NoofSegments_ * 2 );
-				RenderFence_.decrement();
+				Context->drawPrimitives(
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					&Viewport,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, NoofSegments * 2 );
 			} );
 	}
 }
